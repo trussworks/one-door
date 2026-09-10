@@ -1,0 +1,93 @@
+.header {
+  --focus-color: #fff;
+  --brand-color: #f7f9fa;
+  background: var(--color-accent-dark);
+  color: #fff;
+  padding: 1rem 2rem;
+}
+.inner {
+  max-width: var(--page-width);
+  margin: auto;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.brand {
+  color: var(--brand-color);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.brand:hover,
+.brand:visited {
+  color: var(--brand-color);
+}
+.viewControl {
+  margin-left: auto;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.viewControl :global(.usa-label),
+.viewControl :global(.usa-select) {
+  margin: 0;
+}
+.viewControl :global(.usa-select) {
+  width: 12rem;
+}
+.demoBanner {
+  padding: 0.5rem 2rem;
+  background: var(--color-attention-surface);
+  font-size: 0.875rem;
+}
+.frame {
+  max-width: var(--page-width);
+  margin: auto;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 3rem;
+}
+.sidebar :global(.usa-sidenav) {
+  box-shadow: none;
+}
+.sidebar p {
+  font-size: 0.875rem;
+  margin: 1.5rem 0.75rem;
+}
+.frame main {
+  min-width: 0;
+}
+.frame main:focus {
+  outline: none;
+}
+.confirmation:not(:empty) {
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 60em) {
+  .frame {
+    padding: 1.5rem;
+  }
+  .sidebar {
+    max-width: 40rem;
+  }
+}
+@media (max-width: 65em) {
+  .frame {
+    grid-template-columns: 1fr;
+  }
+  .sidebar nav ul {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .sidebar p {
+    display: none;
+  }
+}
+
+.sessionIdentity {
+  margin-left: auto;
+  font-size: 0.9rem;
+}

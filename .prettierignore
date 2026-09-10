@@ -1,0 +1,6 @@
+.entire/tmp/
+.entire/logs/
+.entire/metadata/
+.entire/settings.local.json
+.entire/redactors/local/
+test/fixtures/upgrade-baselines/

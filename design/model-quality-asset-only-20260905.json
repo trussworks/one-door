@@ -1,0 +1,95 @@
+{
+  "case": {
+    "key": "asset-only-booking",
+    "need": "Our office needs a way for staff to reserve shared meeting rooms and office vehicles. Staff should see when a resource is free and make repeating weekly reservations. Restricted rooms need a supervisor's approval. We also need to see how much each location's resources are used. No public access, event registration, or visitor management is needed. Existing staff accounts will be used; OIT can perform normal setup.",
+    "expected": "An eligible standalone resource-booking asset can satisfy the entire need; a single asset-kind suggestion should be visible without a fabricated service, integration chain or extra feature."
+  },
+  "result": {
+    "case": "asset-only-booking",
+    "jobId": "263f9c63-6773-4ffd-b91f-13686971fe0d",
+    "draftId": "0554b06b-3653-401a-890b-f8fe3679abf0",
+    "status": "succeeded",
+    "attempts": 1,
+    "promptVersion": "intake-v5",
+    "input": {
+      "turns": [],
+      "content": {},
+      "rawNeed": "Our office needs a way for staff to reserve shared meeting rooms and office vehicles. Staff should see when a resource is free and make repeating weekly reservations. Restricted rooms need a supervisor's approval. We also need to see how much each location's resources are used. No public access, event registration, or visitor management is needed. Existing staff accounts will be used; OIT can perform normal setup.",
+      "clarifications": []
+    },
+    "corpusHash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+    "output": {
+      "assets": [
+        {
+          "gaps": [],
+          "fitBand": "strong",
+          "coverage": [
+            "Books rooms and vehicles against availability rules",
+            "Supports recurring weekly reservations",
+            "Handles approval workflow for restricted spaces",
+            "Reports utilization by location"
+          ],
+          "rationale": "Facility Scheduler directly covers room and vehicle booking, recurring reservations, restricted-space approval, and location-based utilization reporting as described, with no public-facing or event/visitor features that would exceed the stated scope.",
+          "dependencies": [],
+          "catalogItemId": "f6fb7301-e3f5-58b3-adc4-726fc43c702a"
+        }
+      ],
+      "content": {
+        "title": "Shared Meeting Room and Vehicle Reservation System",
+        "problem": "Staff need to see when meeting rooms and office vehicles are free and make recurring weekly reservations. Restricted rooms require supervisor approval and management wants usage visibility by location.",
+        "unknowns": [
+          "Whether reservation changes or cancellations need automated notifications to staff.",
+          "Number of office locations that need separate utilization reporting."
+        ],
+        "constraints": [
+          "No public access to the reservation system is needed.",
+          "No event registration functionality is needed.",
+          "No visitor management functionality is needed.",
+          "OIT will perform normal account setup; no special provisioning requested."
+        ],
+        "requirements": [
+          "Allow staff to book shared meeting rooms and office vehicles against availability.",
+          "Support recurring weekly reservations.",
+          "Route restricted room bookings to a supervisor for approval.",
+          "Provide utilization reporting broken down by location.",
+          "Use existing staff accounts for sign-in."
+        ],
+        "affectedPeople": "Office staff booking rooms and vehicles; supervisors approving restricted room requests.",
+        "acceptanceCriteria": [
+          "Staff can view real-time availability of shared rooms and vehicles.",
+          "Staff can create recurring weekly reservations.",
+          "Restricted room bookings are routed to a supervisor for approval before confirmation.",
+          "Managers can view resource usage/utilization by location."
+        ]
+      },
+      "services": [],
+      "questions": [
+        "Which specific rooms or vehicles require supervisor approval, and who are the approving supervisors?",
+        "How should usage reports be reviewed—by whom and how often?"
+      ],
+      "requesterSuggestion": {
+        "id": "f6fb7301-e3f5-58b3-adc4-726fc43c702a",
+        "kind": "asset",
+        "summary": "Facility Scheduler lets staff check availability and book shared meeting rooms and vehicles, including recurring weekly reservations, with supervisor approval for restricted rooms and usage reports per location.",
+        "conditions": [
+          "OIT will connect it to existing staff accounts during standard setup.",
+          "OIT will confirm which rooms are restricted and who approves them during configuration."
+        ]
+      }
+    },
+    "suggestionShown": {
+      "jobId": "263f9c63-6773-4ffd-b91f-13686971fe0d",
+      "kind": "asset",
+      "candidateId": "e06d9c2b-6473-4600-9dc2-1e102b0390a8",
+      "name": "Facility Scheduler",
+      "summary": "Facility Scheduler lets staff check availability and book shared meeting rooms and vehicles, including recurring weekly reservations, with supervisor approval for restricted rooms and usage reports per location.",
+      "conditions": [
+        "OIT will connect it to existing staff accounts during standard setup.",
+        "OIT will confirm which rooms are restricted and who approves them during configuration."
+      ]
+    },
+    "callsUsed": 1,
+    "cost": 80898
+  },
+  "note": "Supplementary live evaluation added to cover an asset-only strong-fit branch. The source corpus is identified by the hash in model-quality-inputs-20260905.json. No submission or survey rating was created."
+}

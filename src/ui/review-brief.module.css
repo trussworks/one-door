@@ -1,0 +1,312 @@
+/* The prepared assessment reads as one document: claims are highlighted
+   phrases inside flowing sentences, each carrying its state in words; the
+   clicked claim opens its evidence-and-judgment panel below the paragraph.
+   Severity carries its own scale, separate from review-state colour. */
+
+.brief {
+  max-width: 46rem;
+}
+
+.brief h2 {
+  margin-top: 2rem;
+  color: #162e51;
+  scroll-margin-top: 1rem;
+}
+.ruleTitle {
+  font-size: 1rem;
+  margin-block: 1.33em;
+}
+
+.context {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.needSummary details > summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.para {
+  margin: 0.5rem 0 1rem;
+  line-height: 1.6;
+}
+
+.claimList {
+  list-style: none;
+  line-height: 1.6;
+  padding: 0;
+  margin: 0;
+}
+
+.claimRow {
+  margin-top: 0.5rem;
+}
+
+/* The claim is a button that reads as marked text inside the sentence. */
+.claimtxt {
+  border: 0;
+  background: #eef4f9;
+  color: inherit;
+  padding: 0 0.25rem;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  border-bottom: 2px solid #005ea2;
+  border-radius: 2px;
+  text-align: left;
+}
+.claimControl {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  margin: 0;
+  max-width: 100%;
+  padding: 0;
+  text-align: left;
+}
+.claimText {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.claimControl .status {
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* Pointer-only styling: on touch a tap must not flash or retain the
+   hover shade. */
+@media (hover: hover) {
+  .claimtxt:hover,
+  .claimControl:hover .claimtxt {
+    background: #d9e8f6;
+  }
+  .linkish:hover {
+    color: #1a4480;
+  }
+}
+
+/* The state marker beside a claim: words first, tone colour second. */
+.status {
+  font-style: italic;
+  font-size: 0.88rem;
+  color: #555;
+}
+.stProposed {
+  color: #555;
+}
+.stDraft {
+  color: #1a4480;
+}
+.stWaiting {
+  color: #775540;
+}
+.stConfirmed {
+  color: #216e1f;
+}
+.stRuledOut {
+  color: #b50909;
+}
+
+/* Severity scale, its own vocabulary: never the review-state tones. */
+.sevChip {
+  display: inline-block;
+  font-size: 0.8rem;
+  padding: 0 0.4rem;
+  border-radius: 2px;
+  border: 1px solid;
+  margin: 0 0.15rem;
+  white-space: nowrap;
+}
+.sevLow {
+  color: #3d4551;
+  border-color: #a9aeb1;
+  background: #f0f0f0;
+}
+.sevModerate {
+  color: #775540;
+  border-color: #e5a000;
+  background: #faf3d1;
+}
+.sevHigh {
+  color: #8b0a03;
+  border-color: #d54309;
+  background: #f8dfe2;
+}
+.sevCritical {
+  color: #fff;
+  border-color: #8b0a03;
+  background: #8b0a03;
+}
+
+/* The evidence-and-judgment panel for the open claim. */
+.claimpanel {
+  border: 1px solid #a5c9e5;
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  margin: 0.6rem 0;
+  background: #f7fbff;
+}
+.excerpt {
+  font-size: 0.9rem;
+  color: #444;
+  border-left: 3px solid #a5c9e5;
+  padding-left: 0.7rem;
+  margin: 0.6rem 0;
+}
+.verbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+}
+
+.verbs > button {
+  margin: 0;
+}
+
+/* Quiet disclosures: asks, the earlier form, catalogue entries. */
+.claim {
+  margin: 0.75rem 0;
+}
+.claim > summary {
+  cursor: pointer;
+  color: #005ea2;
+  text-decoration: underline;
+  font-size: 0.95rem;
+  padding: 0.25rem 0;
+}
+.claimBody {
+  border-left: 3px solid #d9d9d9;
+  padding: 0.3rem 0 0.3rem 0.8rem;
+  margin: 0.3rem 0 0.6rem;
+}
+
+/* Question rows keep their chip vocabulary. */
+.statusChip {
+  display: inline-block;
+  font-size: 0.87rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  border: 1px solid;
+  margin-right: 0.35rem;
+  white-space: nowrap;
+}
+.statusChip.stWaiting {
+  color: #775540;
+  background: #faf3d1;
+  border-color: #e5a000;
+}
+.statusChip.stConfirmed {
+  color: #216e1f;
+  background: #ecf3ec;
+  border-color: #00a91c;
+}
+
+.severityLine {
+  margin: 0.25rem 0 0;
+  color: #3d4551;
+  font-size: 0.93rem;
+}
+
+.provenance {
+  color: #565c65;
+  font-size: 0.87rem;
+  margin: 0.25rem 0 0;
+}
+
+.draftState {
+  color: #565c65;
+  font-size: 0.87rem;
+  margin: 0.5rem 0 0;
+}
+
+/* One priority factor per line: value, attribution, Edit. */
+.estline {
+  margin: 0.5rem 0;
+}
+.by {
+  color: #555;
+  font-size: 0.88rem;
+}
+/* Inline text control with a real hit area: block padding reaches the
+   24px general minimum in normal flow (the box stays inside the line
+   height, so desktop lines do not move). */
+.linkish {
+  border: 0;
+  background: none;
+  color: #005ea2;
+  text-decoration: underline;
+  padding: 0.25rem 0.2rem;
+  margin: 0 0 0 0.3rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.guidance {
+  color: #555;
+  font-size: 0.85rem;
+  margin: 0.1rem 0 0.4rem;
+}
+
+.estimateRow {
+  margin: 0.35rem 0;
+}
+
+/* Actions: the hold sentence and the completed outcome. */
+.done {
+  background: #ecf3ec;
+  border-left: 4px solid #216e1f;
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  margin-top: 1.2rem;
+}
+
+.completion {
+  margin-top: 3rem;
+}
+
+.coordination {
+  margin-top: 1.5rem;
+}
+.coordination > summary {
+  cursor: pointer;
+  color: #565c65;
+  padding: 0.5rem 0;
+}
+
+@media (pointer: coarse) {
+  .completionNeeds a {
+    display: inline-block;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.55rem 0;
+  }
+  .claimControl {
+    padding: 0.55rem 0.35rem;
+  }
+  .linkish {
+    display: inline-block;
+    padding: 0.7rem 0.5rem;
+    text-align: center;
+  }
+  .affirm {
+    display: inline-block;
+    padding: 0.55rem 0;
+    min-height: 44px;
+  }
+  .done a {
+    display: inline-block;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.7rem 0.5rem;
+  }
+}
+
+.earlyClose {
+  margin-top: 1.5rem;
+}

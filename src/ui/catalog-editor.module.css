@@ -1,0 +1,20 @@
+.catalogField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  margin: 2.5rem 0;
+}
+.catalogField :global(.field) {
+  margin: 0;
+}
+.catalogField :global(.usa-label) {
+  margin-top: 0;
+}
+.fieldEvidence :global(.usa-select) {
+  margin-bottom: 1rem;
+}
+@media (max-width: 60em) {
+  .catalogField {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,19 @@
+.git
+.entire
+.env*
+node_modules
+.next
+.harness
+.deployment-private
+playwright-results
+playwright-report
+design
+*.tsbuildinfo
+npm-debug.log*
+# Deployment configuration and operator tooling never belong in the image:
+# Terraform provider plugins and state must not enter the build context.
+infra
+scripts/deploy
+test
+vitest.config.ts
+playwright*.config.ts

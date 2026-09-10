@@ -1,0 +1,313 @@
+:root {
+  --color-text-muted: #565c65;
+  --color-accent: #005ea2;
+  --color-surface: #fdfdfc;
+  --color-accent-surface: #e7f6f8;
+  --color-attention-surface: #faf3d1;
+  --color-text: #1b1b1b;
+  --color-page: #f7f9fa;
+  --color-inset: #f5f6f7;
+  --color-accent-dark: #162e51;
+  --page-width: 90rem;
+  --content-width: 66ch;
+  --form-width: 42rem;
+}
+
+/* Fieldsets and percentage-width controls must fit their containing column. */
+.usa-fieldset {
+  min-inline-size: 0;
+}
+button,
+input,
+select,
+textarea {
+  box-sizing: border-box;
+}
+
+.one-door {
+  color: var(--color-text);
+  background: var(--color-surface);
+  min-height: 100vh;
+}
+/* The shell keeps app-layout as the shared workflow typography hook. */
+.app-layout h1 {
+  font-size: 2.25rem;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+}
+/* Component heading rules must win regardless of stylesheet chunk order. */
+.app-layout :where(h2) {
+  font-size: 1.5rem;
+  margin: 2.5rem 0 1rem;
+}
+.app-layout p {
+  max-width: var(--content-width);
+  line-height: 1.5;
+}
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 2rem 0;
+}
+.actions .usa-button {
+  margin: 0;
+}
+.muted,
+.save-status {
+  color: var(--color-text-muted);
+}
+.save-status {
+  min-height: 1.5rem;
+  font-size: 0.875rem;
+}
+.save-status .usa-button {
+  margin-left: 0.75rem;
+}
+.field {
+  margin: 1.25rem 0;
+}
+.field .usa-label {
+  margin-top: 0;
+}
+.field .usa-hint {
+  display: block;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0.5rem;
+}
+summary {
+  min-height: 24px;
+}
+.field .usa-input,
+.field .usa-textarea {
+  margin-top: 0.5rem;
+  max-width: 40rem;
+}
+/* USWDS removes this border for an attached search button; Field stands alone. */
+.field .usa-input[type="search"] {
+  border-right: 1px solid var(--color-text-muted);
+  float: none;
+}
+.field .usa-textarea {
+  min-height: 6rem;
+}
+.design-note {
+  margin: 2rem 0;
+  padding: 1rem 1.25rem;
+  background: var(--color-attention-surface);
+  font-size: 0.875rem;
+  max-width: 70ch;
+}
+.design-note p {
+  margin: 0.5rem 0 0;
+}
+.hide-design-notes .design-note {
+  display: none;
+}
+.one-door:not(:has(main .design-note)) .design-notes-toggle {
+  display: none;
+}
+.task-rating {
+  margin: 2rem 0;
+}
+.rating-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.rating-options label {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #71767a;
+}
+.breadcrumb {
+  margin-bottom: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.intake-answer h3 {
+  font-size: 1rem;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.5rem;
+}
+.intake-answer p {
+  white-space: pre-wrap;
+}
+.queue-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: end;
+}
+.queue-filters > div {
+  min-width: 0;
+  margin: 0;
+}
+@media (max-width: 55em) {
+  .queue-filters {
+    grid-template-columns: 1fr;
+  }
+}
+.queue-filters .usa-label {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+.queue-filters .usa-select,
+.queue-filters .usa-input {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  height: 2.5rem;
+}
+.record-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  padding: 0;
+}
+.record-action form {
+  max-width: var(--form-width);
+}
+.record-action {
+  margin: 1.5rem 0;
+}
+.record-action summary {
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 0.75rem 0;
+}
+.prerequisites {
+  padding: 1.25rem;
+  border-left: 0.5rem solid #ffbe2e;
+  background: var(--color-attention-surface);
+  margin: 1.5rem 0;
+}
+.prerequisites li {
+  margin: 0.5rem 0;
+}
+
+.one-door a:not(.usa-button):not(.app-header__brand) {
+  color: var(--color-accent);
+}
+.one-door td:last-child {
+  font-variant-numeric: tabular-nums;
+}
+.request-meta {
+  color: var(--color-text-muted);
+  display: block;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+.block-link {
+  display: block;
+  margin: 0.5rem 0;
+}
+.one-door td .usa-button--unstyled {
+  line-height: 1.5;
+}
+.preserve-lines {
+  white-space: pre-wrap;
+}
+.record-links a {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  text-underline-offset: 0.2em;
+}
+.record-links a[aria-current="page"] {
+  background: var(--color-accent-surface);
+  text-decoration-thickness: 0.15rem;
+  text-underline-offset: 0.25rem;
+}
+
+/* Link-styled deliberate action triggers (ask reveals). */
+.linkish-action {
+  border: 0;
+  background: none;
+  color: #005ea2;
+  text-decoration: underline;
+  padding: 0.25rem 0.2rem;
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .linkish-action:hover {
+    color: #1a4480;
+  }
+}
+@media (pointer: coarse) {
+  .linkish-action {
+    display: inline-block;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.7rem 0.5rem;
+  }
+}
+
+/* The quiet History reference beside the record identity. */
+.history-link {
+  margin: 0.25rem 0 0;
+}
+.history-link,
+.section-return {
+  font-size: 0.9rem;
+}
+.section-return button {
+  font: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navigation anchors meet the 44px touch minimum in normal flow. */
+@media (pointer: coarse) {
+  .history-link a,
+  .section-return a {
+    display: inline-block;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.7rem 0.5rem;
+  }
+}
+
+/* Controls shared by review, delivery, history, and the shell need the same
+   touch area. Normal flow keeps neighbouring targets from overlapping. */
+@media (pointer: coarse) {
+  button,
+  .usa-button,
+  select,
+  textarea,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  summary,
+  .usa-checkbox__label,
+  .usa-radio__label {
+    box-sizing: border-box;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  summary {
+    padding-block: 0.6rem;
+  }
+  .usa-sidenav a,
+  .app-header__brand,
+  .usa-skipnav {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .rating-options label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

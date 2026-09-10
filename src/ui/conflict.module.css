@@ -1,0 +1,10 @@
+.comparisonTable {
+  max-height: 36rem;
+}
+.comparisonTable th,
+.comparisonTable td {
+  min-width: 12rem;
+}
+.comparisonTable tr > :first-child {
+  min-width: 9rem;
+}

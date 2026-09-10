@@ -1,0 +1,32 @@
+.revisionContent dt {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: 1rem;
+}
+.revisionContent dd {
+  margin: 0.25rem 0;
+  white-space: pre-wrap;
+  max-width: var(--content-width);
+}
+
+.json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.fingerprint {
+  overflow-wrap: anywhere;
+}
+.dialogue dt {
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+}
+.dialogue dd {
+  margin: 0;
+  white-space: pre-wrap;
+  max-width: var(--content-width);
+  line-height: 1.5;
+}
+.historyEntry {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}

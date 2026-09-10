@@ -1,0 +1,5 @@
+/* Doubled class: this tightens table-scroll's shared max-height on the same
+   element, so it must win regardless of module load order. */
+.historyTable.historyTable {
+  max-height: 28rem;
+}

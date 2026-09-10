@@ -1,0 +1,14 @@
+.metricValue {
+  font-size: 1.125rem;
+  font-weight: 600;
+  min-width: 10rem;
+  font-variant-numeric: tabular-nums;
+}
+.metricDetails {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: var(--color-inset);
+}
+.metricDetails h2 {
+  margin-top: 0;
+}

@@ -1,0 +1,132 @@
+{
+  "createdAt": "2026-09-06T04:19:14.605Z",
+  "root": "/Users/atighi/dev/co_ai",
+  "checks": [
+    {
+      "id": "format",
+      "name": "Format check",
+      "command": ["npm", "run", "format:check"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 2743,
+      "outputTail": "> one-door@0.1.0 format:check\n> prettier --check .\n\nChecking formatting...\nAll matched files use Prettier code style!",
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "lint",
+      "name": "Lint",
+      "command": ["npm", "run", "lint"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 5860,
+      "outputTail": "> one-door@0.1.0 lint\n> eslint .",
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "typecheck",
+      "name": "Type check",
+      "command": ["npm", "run", "typecheck"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 1408,
+      "outputTail": "> one-door@0.1.0 typecheck\n> tsc --noEmit",
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 2)"
+      }
+    },
+    {
+      "id": "test",
+      "name": "Tests",
+      "command": ["npm", "run", "test"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 4473,
+      "outputTail": "…strip-types src/seed/check.ts\n\nSeed data is valid:\n  25 distinct requests and 26 drafts\n  12 service offerings and 55 governed catalog items\n  108 immutable source records and 12 conflicts\n  20 policy rules across 6 domains\n  18 external work items with zero/one/many request links\n\n RUN  v3.2.7 /Users/atighi/dev/co_ai\n\n ✓ test/business-days.test.ts (6 tests) 2ms\n ✓ test/health.test.ts (2 tests) 4ms\n ✓ test/auth.test.ts (6 tests) 28ms\n ✓ test/requester-workspace.test.ts (13 tests) 13ms\n ✓ test/provider.test.ts (4 tests) 10ms\n ✓ test/fixture-upgrade-safety.test.ts (1 test) 671ms\n   ✓ refuses a normal application database before running fixture-upgrade diagnostics  670ms\n ✓ test/harness.smoke.test.ts (1 test) 27ms\n ✓ test/ui.test.tsx (26 tests) 19ms\n ✓ test/ci.test.ts (4 tests) 1127ms\n   ✓ ignores generated browser artifacts while linting application and test source  1123ms\n ✓ test/worker-runtime.test.ts (2 tests) 2007ms\n   ✓ does not log SQL parameters or request text on a worker-loop failure  2005ms\n\n Test Files  10 passed (10)\n      Tests  65 passed (65)\n   Start at  23:18:52\n   Duration  3.19s (transform 1.92s, setup 0ms, collect 5.24s, tests 3.91s, environment 1ms, prepare 711ms)",
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "build",
+      "name": "Build",
+      "command": ["npm", "run", "build"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 5376,
+      "outputTail": "…/api/asset-fit\n├ ƒ /api/catalog\n├ ƒ /api/catalog/[catalogItemId]\n├ ƒ /api/clarifications\n├ ƒ /api/conflicts/[conflictId]\n├ ƒ /api/dashboard\n├ ƒ /api/draft-view/[draftId]\n├ ƒ /api/drafts\n├ ƒ /api/drafts/[draftId]\n├ ƒ /api/health\n├ ƒ /api/intake-answer\n├ ƒ /api/intake-confirm\n├ ƒ /api/intake-workspace\n├ ƒ /api/intake-workspace/[draftId]\n├ ƒ /api/inventory\n├ ƒ /api/metadata\n├ ƒ /api/models\n├ ƒ /api/models/[jobId]\n├ ƒ /api/observations/[recordId]\n├ ƒ /api/queue\n├ ƒ /api/reports\n├ ƒ /api/request-index\n├ ƒ /api/request-view/[requestId]\n├ ƒ /api/requests\n├ ƒ /api/requests/[requestId]\n├ ƒ /api/review/actions\n├ ƒ /api/review/requests/[requestId]\n├ ƒ /api/service-decision\n├ ƒ /api/session\n├ ƒ /api/sources/[sourceId]\n├ ƒ /api/wip\n├ ƒ /api/work\n├ ƒ /api/work-items\n├ ƒ /api/work-items/[workItemId]\n├ ○ /catalog\n├ ƒ /catalog/[catalogItemId]\n├ ○ /catalog/new\n├ ƒ /conflicts/[conflictId]\n├ ○ /dashboard\n├ ○ /my\n├ ○ /new\n├ ƒ /observations/[recordId]\n├ ○ /reports\n├ ƒ /request/[requestId]\n├ ○ /requests\n├ ○ /review\n├ ƒ /review/[requestId]\n├ ○ /sources\n├ ƒ /sources/[sourceId]\n├ ○ /sources/new\n└ ƒ /work-items/[workItemId]\n\n\n○  (Static)   prerendered as static content\nƒ  (Dynamic)  server-rendered on demand",
+      "trip": {
+        "attempted": false,
+        "skippedReason": "no cheap seeded violation for builds"
+      }
+    },
+    {
+      "id": "security",
+      "name": "Secret scan",
+      "command": ["npm", "run", "security"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 1291,
+      "outputTail": "> one-door@0.1.0 security\n> secretlint --maskSecrets \"**/*\"",
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "deps",
+      "name": "Dependency audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "ran": true,
+      "passed": true,
+      "enforced": true,
+      "exitCode": 0,
+      "durationMs": 581,
+      "outputTail": "found 0 vulnerabilities",
+      "trip": {
+        "attempted": false,
+        "skippedReason": "would require installing a known-vulnerable package"
+      }
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "advisoryFailed": 0,
+    "weak": 0,
+    "tripUnavailable": 0,
+    "notRun": 0
+  },
+  "warnings": [],
+  "ok": true
+}

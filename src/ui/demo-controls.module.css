@@ -1,0 +1,7 @@
+.demoControls {
+  max-width: 48rem;
+}
+.demoControls :global(.usa-checkbox) {
+  margin-top: 2rem;
+  background: transparent;
+}

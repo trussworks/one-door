@@ -1,0 +1,9 @@
+.savedDrafts {
+  padding-left: 1.25rem;
+}
+.savedDrafts li {
+  margin-bottom: 1rem;
+}
+.savedDrafts :global(.muted) {
+  display: block;
+}

@@ -1,0 +1,7 @@
+.gate {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+.gate p {
+  max-width: var(--content-width);
+}

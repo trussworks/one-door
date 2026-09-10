@@ -1,0 +1,94 @@
+{
+  "createdAt": "2026-09-06T20:06:07.374Z",
+  "checks": [
+    {
+      "id": "format",
+      "command": ["npm", "run", "format:check"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "lint",
+      "command": ["npm", "run", "lint"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "typecheck",
+      "command": ["npm", "run", "typecheck"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 2)"
+      }
+    },
+    {
+      "id": "test",
+      "command": ["npm", "run", "test"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "build",
+      "command": ["npm", "run", "build"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": false,
+        "skippedReason": "no cheap seeded violation for builds"
+      }
+    },
+    {
+      "id": "security",
+      "command": ["npm", "run", "security"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": true,
+        "caught": true,
+        "restored": true,
+        "detail": "seeded violation correctly failed the check (exit 1)"
+      }
+    },
+    {
+      "id": "deps",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "passed": true,
+      "exitCode": 0,
+      "trip": {
+        "attempted": false,
+        "skippedReason": "would require installing a known-vulnerable package"
+      }
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "advisoryFailed": 0,
+    "weak": 0,
+    "tripUnavailable": 0,
+    "notRun": 0
+  }
+}

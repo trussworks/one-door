@@ -1,0 +1,24 @@
+.notes {
+  margin-bottom: 2.5rem;
+}
+.notes > h2:first-child {
+  margin-top: 0;
+}
+.entries {
+  max-height: 24rem;
+  overflow: auto;
+}
+.entries article {
+  margin-bottom: 1.5rem;
+}
+.noteAuthor {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+.noteBody {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.notes form {
+  max-width: var(--form-width);
+}

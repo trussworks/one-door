@@ -1,0 +1,21 @@
+{
+  "checkpoints": {
+    "primary": {
+      "type": "git-refs"
+    }
+  },
+  "enabled": false,
+  "strategy_options": {
+    "push_sessions": false
+  },
+  "redaction": {
+    "custom_redactions": {
+      "one_door": "od_(?:db|demo|session)_[A-Za-z0-9_-]{24,}",
+      "one_door_recorded_credential_assignment": "(?i)(?:\\w*(?:password|passwd|passphrase|secret|credential|api[^\\n]?key|access[^\\n]?key|access[^\\n]?code)|token|\\w*(?:auth|access|refresh|bearer|api|oauth2?|github|gitlab|npm|session|secret|private)[_-]?token)(?:\\\\+[\"']|[\"'])*[ \\t]*(?:\\\\?\\|\\\\?\\||\\\\?\\?\\\\?\\?)?[:=][ \\t]*(?:\\\\+[\"']|[\"'])*[^\\t\\n\\f\\r ,;)\\]}]+",
+      "one_door_recorded_credential_url": "\\b[a-z][a-z0-9+.-]*://[^:/@\\t\\n\\f\\r \"'`\\\\]+:[^@\\t\\n\\f\\r \"'`\\\\]+@",
+      "one_door_recorded_private_key_block": "-----BEGIN[A-Z \\t]*PRIVATE KEY-----[\\s\\S]*?-----END[A-Z \\t]*PRIVATE KEY-----",
+      "one_door_recorded_sendgrid_key": "SG\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+"
+    }
+  },
+  "telemetry": false
+}

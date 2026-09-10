@@ -1,0 +1,36 @@
+.modelWaiting {
+  display: flex;
+  align-items: start;
+  gap: 1.5rem;
+  background: var(--color-accent-surface);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  max-width: 48rem;
+}
+.modelWaiting progress {
+  width: 5rem;
+  min-width: 5rem;
+  height: 1.5rem;
+  accent-color: var(--color-accent);
+}
+.modelWaiting p {
+  margin: 0.5rem 0 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .modelWaiting progress {
+    animation: none;
+  }
+}
+.refreshStatus {
+  min-height: 1.5em;
+  margin: 0.5rem 0;
+  color: var(--color-text-muted);
+}
+
+/* A recovery action beside its message, not a full-width bar: the button is a
+   block-level flex container, so in flow it takes the whole line. */
+.problem :global(.usa-button) {
+  display: inline-flex;
+  width: auto;
+  margin-top: 0.5rem;
+}

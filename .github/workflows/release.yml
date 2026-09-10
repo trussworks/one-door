@@ -1,0 +1,199 @@
+name: Truss AWS release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: one-door-truss-release
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/harness-ci.yml
+  publish:
+    needs: checks
+    runs-on: ubuntu-latest
+    # A separate environment gives this job its own OIDC subject, so its token
+    # cannot assume the deployment role even though both run from main.
+    environment: truss-publish
+    outputs:
+      artifact_name: ${{ steps.record.outputs.artifact_name }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: us-west-2
+      EXPECTED_ACCOUNT: "004351505091"
+      EXPECTED_SUBJECT: repo:trussworks@1649505/one-door@1362084625:environment:truss-publish
+      REPOSITORY: 004351505091.dkr.ecr.us-west-2.amazonaws.com/one-door-truss
+      RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24"
+      - run: npm ci
+      - name: Verify the identity claims AWS will trust
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const url = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+          url.searchParams.set('audience', 'sts.amazonaws.com');
+          const response = await fetch(url, {headers: {Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`}});
+          assert.equal(response.status, 200);
+          const {value} = await response.json();
+          const claims = JSON.parse(Buffer.from(value.split('.')[1], 'base64url'));
+          assert.equal(claims.aud, 'sts.amazonaws.com');
+          assert.equal(claims.sub, process.env.EXPECTED_SUBJECT);
+          assert.equal(claims.ref, 'refs/heads/main');
+          assert.equal(claims.repository_id, '1362084625');
+          assert.equal(claims.repository_owner_id, '1649505');
+          console.log('Expected repository, environment and audience claims confirmed.');
+          JS
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ vars.AWS_PUBLISH_ROLE_ARN }}
+          aws-region: us-west-2
+          allowed-account-ids: "004351505091"
+          role-session-name: one-door-publish-${{ github.run_id }}
+      - name: Verify publishing cannot assume the deployment role
+        run: node --experimental-strip-types scripts/deploy/check-publish-boundary.ts "arn:aws:iam::$EXPECTED_ACCOUNT:role/one-door-truss-release" "$EXPECTED_SUBJECT" "$EXPECTED_ACCOUNT"
+      - name: Authenticate to the account's private image registry
+        run: |
+          set -euo pipefail
+          aws ecr get-login-password | docker login --username AWS --password-stdin "${REPOSITORY%%/*}"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - name: Build once with provenance and SBOM
+        id: image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.REPOSITORY }}:${{ env.RELEASE_ID }}
+          build-args: |
+            RELEASE_ID=${{ env.RELEASE_ID }}
+            SOURCE_REVISION=${{ github.sha }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+          provenance: mode=max
+          sbom: true
+      - name: Record the immutable image for the reviewed Terraform release
+        id: record
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          mkdir -p release-evidence
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {appendFileSync, writeFileSync} from 'node:fs';
+          assert.match(process.env.IMAGE_DIGEST, /^sha256:[a-f0-9]{64}$/);
+          appendFileSync(process.env.GITHUB_OUTPUT, 'artifact_name=truss-release-image-' + process.env.RELEASE_ID + '\n');
+          writeFileSync('release-evidence/image.json', JSON.stringify({
+            sourceRevision: process.env.GITHUB_SHA,
+            releaseId: process.env.RELEASE_ID,
+            image: process.env.REPOSITORY + '@' + process.env.IMAGE_DIGEST,
+            account: process.env.EXPECTED_ACCOUNT,
+            region: process.env.AWS_REGION
+          }, null, 2) + '\n');
+          JS
+      - name: Capture contracts and assets from the exact image and source
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          docker pull --platform linux/amd64 "$REPOSITORY@$IMAGE_DIGEST"
+          node --experimental-strip-types scripts/deploy/capture-release.ts "$REPOSITORY@$IMAGE_DIGEST" "$RELEASE_ID" "$GITHUB_SHA"
+      - name: Require a completed scan with no critical or high findings
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          node --experimental-strip-types scripts/deploy/check-image-scan.ts "$REPOSITORY" "$AWS_REGION" "$IMAGE_DIGEST"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: truss-release-image-${{ env.RELEASE_ID }}
+          path: release-evidence/*.json
+          if-no-files-found: error
+          retention-days: 30
+  deploy:
+    needs: [checks, publish]
+    runs-on: ubuntu-latest
+    environment: truss
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      DEPLOYMENT_PLATFORM: ${{ vars.DEPLOYMENT_PLATFORM }}
+      EXPECTED_SUBJECT: repo:trussworks@1649505/one-door@1362084625:environment:truss
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24"
+      - name: Verify the identity claims AWS will trust
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const url = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+          url.searchParams.set('audience', 'sts.amazonaws.com');
+          const response = await fetch(url, {headers: {Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`}});
+          assert.equal(response.status, 200);
+          const {value} = await response.json();
+          const claims = JSON.parse(Buffer.from(value.split('.')[1], 'base64url'));
+          assert.equal(claims.aud, 'sts.amazonaws.com');
+          assert.equal(claims.sub, process.env.EXPECTED_SUBJECT);
+          assert.equal(claims.ref, 'refs/heads/main');
+          assert.equal(claims.repository_id, '1362084625');
+          assert.equal(claims.repository_owner_id, '1649505');
+          console.log('Expected repository, environment and audience claims confirmed.');
+          JS
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: 1.16.1
+          terraform_wrapper: false
+      - run: npm ci
+      - name: Read this run's verified image record
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_ARTIFACT: ${{ needs.publish.outputs.artifact_name }}
+        run: gh run download "$GITHUB_RUN_ID" --name "$IMAGE_ARTIFACT" --dir release-evidence
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          allowed-account-ids: "004351505091"
+          role-session-name: one-door-deploy-${{ github.run_id }}
+      - name: Prepare deployment inputs
+        run: |
+          umask 077
+          export DOCKER_CONFIG="$RUNNER_TEMP/one-door-docker"
+          mkdir -p "$DOCKER_CONFIG"
+          echo "DOCKER_CONFIG=$DOCKER_CONFIG" >> "$GITHUB_ENV"
+          echo "ONE_DOOR_TERRAFORM=$(command -v terraform)" >> "$GITHUB_ENV"
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          if (!process.env.DEPLOYMENT_PLATFORM) throw new Error('Truss platform metadata is not configured');
+          writeFileSync(process.env.RUNNER_TEMP + '/platform.json', process.env.DEPLOYMENT_PLATFORM, {mode: 0o600});
+          JS
+      # Installation runs from an operator workstation against the install stack.
+      # The workflow has no route to it, so a forgotten repository variable
+      # cannot start a first install or reset running services.
+      - name: Verify the deployment role's read boundaries
+        run: |
+          install -d -m 700 "$RUNNER_TEMP/deployment"
+          node --experimental-strip-types scripts/deploy/check-release-boundary.ts "$RUNNER_TEMP/platform.json" "$RUNNER_TEMP/deployment/iam-read-boundary.json"
+      - name: Apply the release and verify public readiness
+        run: node --experimental-strip-types scripts/deploy/deploy-release.ts "$RUNNER_TEMP/platform.json" "$PWD/release-evidence/release.json" "$RUNNER_TEMP/deployment" "$GITHUB_SHA"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: truss-deployment-evidence-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/deployment/*.json
+          if-no-files-found: warn
+          retention-days: 30

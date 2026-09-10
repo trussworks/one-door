@@ -1,0 +1,28 @@
+@import "@trussworks/react-uswds/lib/uswds.css";
+@import "@trussworks/react-uswds/lib/index.css";
+
+/* Override USWDS focus without changing control borders or selection/error states. */
+:root :focus:not(:focus-visible),
+:root
+  :is(.usa-checkbox__input, .usa-radio__input):focus:not(:focus-visible)
+  + [class*="__label"]::before {
+  outline: none;
+}
+:root :focus:focus-visible,
+:root
+  :is(.usa-checkbox__input, .usa-radio__input):focus:focus-visible
+  + [class*="__label"]::before {
+  outline-color: var(--focus-color, #1b1b1b);
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+:root :is(.usa-input, .usa-textarea, .usa-select):focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-text);
+}

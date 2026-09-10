@@ -1,0 +1,74 @@
+.landing {
+  max-width: var(--page-width);
+  margin: auto;
+  padding: 3rem 4rem;
+}
+.landing h1 {
+  font-size: 3rem;
+  line-height: 1.15;
+  color: var(--color-accent-dark);
+  margin: 1rem 0 1.5rem;
+}
+.landing h2 {
+  font-size: 1.75rem;
+  margin: 0 0 1.5rem;
+}
+.landingIntro {
+  background: var(--color-accent-surface);
+  padding: 3rem;
+  margin-bottom: 3rem;
+}
+.landingIntro > p:last-child {
+  font-size: 1.25rem;
+  max-width: 58ch;
+  line-height: 1.5;
+  margin: 0;
+}
+.landingEyebrow {
+  color: var(--color-accent);
+  font-weight: 700;
+  margin: 0;
+}
+.workflowChoices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.5rem;
+}
+.workflowChoices article {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+.workflowChoices h3 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin: 0.75rem 0 0;
+}
+.workflowChoices article > p:not(.landingEyebrow) {
+  line-height: 1.5;
+  margin: 1rem 0 1.5rem;
+}
+.workflowChoices :global(.usa-button) {
+  margin-top: auto;
+}
+.landingNote {
+  margin: 3rem 0 0;
+  color: var(--color-text-muted);
+  max-width: 80ch;
+  line-height: 1.5;
+}
+@media (max-width: 55em) {
+  .landing {
+    padding: 2rem;
+  }
+  .landingIntro {
+    padding: 2rem;
+  }
+  .landing h1 {
+    font-size: 2.25rem;
+  }
+  .workflowChoices {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}

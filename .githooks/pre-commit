@@ -1,0 +1,4 @@
+#!/bin/sh
+# Scans the staged index, not the working copy: a clean working file cannot
+# hide a credential that is actually being committed.
+exec node --experimental-strip-types scripts/scan-secrets.ts --staged

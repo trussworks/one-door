@@ -1,0 +1,5 @@
+#!/bin/sh
+# Kept as a no-op so core.hooksPath still resolves every hook name git may call.
+# The agent recording callback that lived here was removed; the credential gates
+# are in pre-commit, commit-msg and pre-push.
+exit 0

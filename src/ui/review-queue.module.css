@@ -1,0 +1,62 @@
+.demoIdentity {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+table.table:global(.usa-table) {
+  min-width: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.table th,
+.table td {
+  padding: 0.5rem;
+}
+.table:global(.usa-table) caption {
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.reachBasis.reachBasis {
+  max-width: none;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+.table th:first-child {
+  width: 25%;
+}
+.table th[data-column="organization"] {
+  width: 17%;
+}
+.table th[data-column="action"] {
+  width: 16%;
+}
+.table :global(.request-meta) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.table td[data-column="waiting"],
+.table td[data-column="submitted"] {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.table td:last-child {
+  min-width: 6rem;
+}
+/* This modifier must override the global filter grid regardless of CSS chunk order. */
+.filtersReview.filtersReview {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (max-width: 70em) {
+  .filtersReview.filtersReview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 45em) {
+  .filtersReview.filtersReview {
+    grid-template-columns: 1fr;
+  }
+}

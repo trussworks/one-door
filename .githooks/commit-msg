@@ -1,0 +1,4 @@
+#!/bin/sh
+# Scans the message that would actually be committed. Nothing rewrites the file
+# before this runs, so the text read here is the text that lands.
+exec node --experimental-strip-types scripts/scan-secrets.ts --message "$1"

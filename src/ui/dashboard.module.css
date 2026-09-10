@@ -1,0 +1,16 @@
+.metricRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+  margin: 2rem 0;
+}
+.metricLink {
+  display: block;
+  padding: 0.5rem 0;
+}
+.metricLink strong {
+  display: block;
+  font-size: 2.25rem;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "createdBy": "repo-harness@0.2.0",
+  "stacks": ["node"],
+  "checks": [
+    {
+      "stack": "node",
+      "capability": "format",
+      "id": "format",
+      "name": "Format check",
+      "command": ["npm", "run", "format:check"],
+      "enforced": true,
+      "trip": "seed harness.tripwire.format.js at the repo root with mis-formatted code; format:check must fail"
+    },
+    {
+      "stack": "node",
+      "capability": "lint",
+      "id": "lint",
+      "name": "Lint",
+      "command": ["npm", "run", "lint"],
+      "enforced": true,
+      "trip": "seed src/harness.tripwire.ts containing an obviously unused variable; lint must fail"
+    },
+    {
+      "stack": "node",
+      "capability": "typecheck",
+      "id": "typecheck",
+      "name": "Type check",
+      "command": ["npm", "run", "typecheck"],
+      "enforced": true,
+      "trip": "seed ./harness.tripwire.ts containing a type error; typecheck must fail"
+    },
+    {
+      "stack": "node",
+      "capability": "test",
+      "id": "test",
+      "name": "Tests",
+      "command": ["npm", "run", "test"],
+      "enforced": true,
+      "trip": "seed harness.tripwire.test.ts with a failing vitest test; the test run must fail"
+    },
+    {
+      "stack": "node",
+      "capability": "build",
+      "id": "build",
+      "name": "Build",
+      "command": ["npm", "run", "build"],
+      "enforced": true
+    },
+    {
+      "stack": "node",
+      "capability": "security",
+      "id": "security",
+      "name": "Secret scan",
+      "command": ["npm", "run", "security"],
+      "enforced": true,
+      "trip": "seed harness.tripwire.secret.txt at the repo root with fake AWS credentials; the secret scan must fail"
+    },
+    {
+      "stack": "node",
+      "capability": "deps",
+      "id": "deps",
+      "name": "Dependency audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "enforced": true
+    }
+  ]
+}

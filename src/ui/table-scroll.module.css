@@ -1,0 +1,57 @@
+.region {
+  position: relative;
+  margin: 1.5rem 0;
+}
+.tableScroll {
+  overflow-x: auto;
+  max-height: 36rem;
+  overflow-anchor: none;
+}
+.fixedHeight {
+  /* Filtering must not shrink the pane and clamp its scroll position. */
+  height: 36rem;
+  scrollbar-gutter: stable;
+}
+.overflowHint {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.tableScroll thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 1;
+}
+.tableScroll tr > :first-child {
+  position: sticky;
+  left: 0;
+  background: var(--color-surface);
+}
+.tableScroll thead tr > :first-child {
+  z-index: 2;
+}
+.tableScroll :global(.usa-table) {
+  margin-top: 0;
+  min-width: 42rem;
+}
+.tableScroll td {
+  vertical-align: top;
+}
+.tableScroll caption {
+  text-align: left;
+  padding-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+/* Small tables need the scroll controls without the operational grid's
+   minimum width or height limit. */
+.tableScroll.naturalWidth {
+  max-height: none;
+}
+.tableScroll.naturalWidth :global(.usa-table) {
+  min-width: 0;
+}

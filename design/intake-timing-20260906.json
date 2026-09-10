@@ -1,0 +1,548 @@
+{
+  "recordedAt": "2026-09-06",
+  "model": "claude-sonnet-5",
+  "comparison": "Three identical fictional needs and corpus hashes; one observed call per version per case. Versions differ in concise candidate instructions and intake effort. This does not isolate either change or establish general model accuracy.",
+  "cases": [
+    {
+      "key": "clear-release",
+      "need": "The Budget Office has a working application and an already approved Colorado Azure target environment. Our release manager owns deployment. We have a repeatable build and the application source. We need a managed source repository, automatic build and test checks, security scans, release approval and a record of deployments. We do not need a new hosting environment or identity project. Success is deploying a reviewed build to the approved environment and identifying which version is running.",
+      "expect": "Delivery-pipeline offering is a whole-need fit. Do not prefer a broad new environment project; routine provisioning is a condition, not invented missing capability."
+    },
+    {
+      "key": "partial-field",
+      "need": "Our field teams record landslide observations where there is no network. They record rock type, GPS coordinates and condition in writing; no photographs are needed. Replace the paper form with fully offline capture and sync when they return. Other teams need a shared page filtered by site and date, available by the following morning. We have no existing record system. OIT will need to help us work out that part.",
+      "expect": "Useful offline capture component may be reviewer evidence. No requester suggestion for an unverified capture-to-viewer chain. Preserve offline and next-morning requirements."
+    },
+    {
+      "key": "no-fit",
+      "need": "We need laboratory equipment that measures the isotope ratios in rock samples using laser-ablation mass spectrometry. The purpose is to measure the chemical composition of the physical samples, not to store documents, create maps, track a workflow or build an analysis dashboard. Success is a calibrated physical measurement with laboratory traceability. A database or map cannot perform the measurement.",
+      "expect": "No requester suggestion and no asset or service pretending to perform the measurement; physical equipment need preserved."
+    }
+  ],
+  "baseline": {
+    "prompt": "intake-v5",
+    "effort": "provider default (high)",
+    "receipts": [
+      {
+        "job_id": "42deb2aa-b2b7-43fb-bcf9-6f887f85a077",
+        "prompt_version": "intake-v5",
+        "input_hash": "3e66753f5c367a1bef47217964a186ced65ab111a78eb4ebf484de9b40058348",
+        "corpus_hash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+        "input_snapshot": {
+          "turns": [],
+          "content": {},
+          "rawNeed": "The Budget Office has a working application and an already approved Colorado Azure target environment. Our release manager owns deployment. We have a repeatable build and the application source. We need a managed source repository, automatic build and test checks, security scans, release approval and a record of deployments. We do not need a new hosting environment or identity project. Success is deploying a reviewed build to the approved environment and identifying which version is running.",
+          "clarifications": []
+        },
+        "call_id": "91a1862b-5c88-4565-a5a6-10f1e7da8e8a",
+        "status": "succeeded",
+        "input_tokens": 22201,
+        "output_tokens": 4339,
+        "latency_ms": 43848,
+        "actual_cost_micros": 87792,
+        "validated_output": {
+          "assets": [
+            {
+              "gaps": [],
+              "fitBand": "strong",
+              "coverage": [
+                "Managed source repository",
+                "Continuous integration with build and test",
+                "Security scanning",
+                "Release approval control",
+                "Deployment into Colorado Azure with change history"
+              ],
+              "rationale": "This platform concretely delivers the managed repository, CI, security scanning, and release approval the Budget Office described, for an application whose hosting is already approved.",
+              "dependencies": [
+                "Uses the already-approved Colorado Azure Landing Zone as the deployment target"
+              ],
+              "catalogItemId": "27d6094c-22e5-529c-a639-5fceeefded9b"
+            }
+          ],
+          "content": {
+            "title": "Automated Delivery Pipeline for Budget Office Application",
+            "problem": "The Budget Office needs a governed way to build, test, scan, and release its existing application into its already-approved environment. Success means a reviewed build deploys there and the running version can be identified.",
+            "unknowns": [
+              "Deployment frequency or release schedule is not specified.",
+              "Whether separate test and production environments exist is not specified."
+            ],
+            "constraints": [
+              "Must use the already-approved Colorado Azure target environment.",
+              "Release manager retains ownership of deployment decisions.",
+              "No new hosting environment is needed.",
+              "No new identity or secrets project is needed."
+            ],
+            "requirements": [
+              "Provide a managed source code repository for the application.",
+              "Run automatic build and test checks on each code change.",
+              "Perform security scans before any release.",
+              "Require release approval before deployment proceeds.",
+              "Keep a record of every deployment made."
+            ],
+            "affectedPeople": "Budget Office application team and release manager",
+            "acceptanceCriteria": [
+              "A reviewed build deploys successfully to the approved Colorado Azure environment.",
+              "The currently running application version can be identified at any time."
+            ]
+          },
+          "services": [
+            {
+              "gaps": [],
+              "fitBand": "strong",
+              "coverage": [
+                "Provides a managed source repository",
+                "Automates build and test checks",
+                "Runs security scans before release",
+                "Enforces a release approval step",
+                "Records deployment history including running version"
+              ],
+              "rationale": "Matches the stated need directly: repository, CI, security scanning, approval gate, and deployment history for an application whose target environment is already approved.",
+              "offeringId": "5283865c-986b-53d5-ad75-e2abde201f60",
+              "relatedOfferingKeys": ["azure-application-deployment"]
+            },
+            {
+              "gaps": [
+                "Also provisions environment, identity, and observability work the requester already has or does not want"
+              ],
+              "fitBand": "weak",
+              "coverage": [
+                "Includes a delivery pipeline component matching the requested build, test, scan, and approval need"
+              ],
+              "rationale": "Bundles pipeline setup with environment and identity provisioning; the Budget Office already has an approved environment and explicitly does not need new identity work, so this offering exceeds the stated scope.",
+              "offeringId": "a5abfae3-5c41-5d92-adfb-527d43b8235d",
+              "relatedOfferingKeys": [
+                "delivery-pipeline-enablement",
+                "application-identity-secrets"
+              ]
+            }
+          ],
+          "questions": [],
+          "requesterSuggestion": {
+            "id": "5283865c-986b-53d5-ad75-e2abde201f60",
+            "kind": "service",
+            "summary": "OIT can set up a governed pipeline that automatically builds, tests, and security-scans your application, then releases a reviewed build to your approved environment with a clear record of what version is running.",
+            "conditions": [
+              "Your release manager will approve each release before it deploys.",
+              "OIT will confirm the pipeline connects cleanly to your existing build process."
+            ]
+          }
+        }
+      },
+      {
+        "job_id": "0af96605-7375-4869-a454-fc4d0fa1c18c",
+        "prompt_version": "intake-v5",
+        "input_hash": "6a82e333fc2f581092256ef7f9063e47c5ad38b1f52f3c1fc7ab3ac39793b621",
+        "corpus_hash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+        "input_snapshot": {
+          "turns": [],
+          "content": {},
+          "rawNeed": "Our field teams record landslide observations where there is no network. They record rock type, GPS coordinates and condition in writing; no photographs are needed. Replace the paper form with fully offline capture and sync when they return. Other teams need a shared page filtered by site and date, available by the following morning. We have no existing record system. OIT will need to help us work out that part.",
+          "clarifications": []
+        },
+        "call_id": "8a262a6e-d01e-411e-90f7-ed43d497e459",
+        "status": "succeeded",
+        "input_tokens": 22186,
+        "output_tokens": 3805,
+        "latency_ms": 43852,
+        "actual_cost_micros": 82422,
+        "validated_output": {
+          "assets": [
+            {
+              "gaps": [
+                "No built-in shared page filtered by site and date for other teams",
+                "Requires a connected system of record, which the requester does not yet have"
+              ],
+              "fitBand": "possible",
+              "coverage": [
+                "Works fully offline with local queueing",
+                "Captures satellite position with each entry",
+                "Reconciles entries on return without rekeying"
+              ],
+              "rationale": "This tool covers the offline capture and GPS logging need well, including working with no connectivity, but by itself it does not produce the shared, filterable view other teams need and depends on a system of record that does not exist yet.",
+              "dependencies": [
+                "Would need pairing with a data store or reporting view to satisfy the next-morning shared page requirement"
+              ],
+              "catalogItemId": "3e2b0ad9-316a-55fb-a0de-7ded0efd0349"
+            }
+          ],
+          "content": {
+            "title": "Offline Landslide Observation Capture and Sharing",
+            "problem": "Field teams record landslide rock type, GPS coordinates, and condition on paper because there is no network at observation sites. No existing system stores these records or lets other teams view them afterward.",
+            "unknowns": [
+              "Approximate number of field staff and sites recording observations",
+              "Typical number of observations per visit or day",
+              "Which other teams need the shared view and what access they need",
+              "How long observation records must be retained"
+            ],
+            "constraints": [
+              "Field observation sites have no network connectivity",
+              "Shared view must be ready by the following morning after visits"
+            ],
+            "requirements": [
+              "Capture rock type, GPS coordinates, and condition entirely offline",
+              "No photograph capture is needed",
+              "Automatic synchronization when connectivity returns",
+              "Shared, filterable view by site and date for other teams",
+              "A new record-keeping system is needed since none exists today"
+            ],
+            "affectedPeople": "Field observation crews and other staff who need site data",
+            "acceptanceCriteria": [
+              "Field staff can record rock type, GPS coordinates, and condition without network access",
+              "Recorded observations sync automatically once staff return to connectivity",
+              "Other teams can view a shared page filtered by site and date",
+              "Shared data is available by the morning after each field visit"
+            ]
+          },
+          "services": [
+            {
+              "gaps": [
+                "No existing source system exists to connect inspection records to, as the requester noted",
+                "Shared filtered view by site and date with next-morning availability is not part of the described capability set and would need separate design"
+              ],
+              "fitBand": "strong",
+              "coverage": [
+                "Designs offline-capable field capture for rock type, GPS coordinates, and condition",
+                "Handles reference-data download and return synchronization",
+                "Addresses field connectivity constraints"
+              ],
+              "rationale": "This offering is built specifically for offline field data capture and return synchronization, matching the paper-to-digital replacement need, but the requester has no source system yet and the next-day shared view needs additional design work OIT would scope separately.",
+              "offeringId": "54b155ee-2241-5966-ab66-47780530b104",
+              "relatedOfferingKeys": [
+                "azure-application-deployment",
+                "delivery-pipeline-enablement"
+              ]
+            }
+          ],
+          "questions": [
+            "About how many field staff or teams will use this, and how often do they record observations?",
+            "Which other teams need to see the shared page, and do they only need to view it or also edit it?",
+            "Is there a required retention period for these landslide observation records?"
+          ],
+          "requesterSuggestion": null
+        }
+      },
+      {
+        "job_id": "7acd1b7f-050b-4b72-9a91-1026e6f24399",
+        "prompt_version": "intake-v5",
+        "input_hash": "9f1703795a6be939ab5ed2bb077ebb922cdaeadcea24b61699b42e93d3c82529",
+        "corpus_hash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+        "input_snapshot": {
+          "turns": [],
+          "content": {},
+          "rawNeed": "We need laboratory equipment that measures the isotope ratios in rock samples using laser-ablation mass spectrometry. The purpose is to measure the chemical composition of the physical samples, not to store documents, create maps, track a workflow or build an analysis dashboard. Success is a calibrated physical measurement with laboratory traceability. A database or map cannot perform the measurement.",
+          "clarifications": []
+        },
+        "call_id": "5e03ce5d-9145-4656-94c1-e9d59e1de4b3",
+        "status": "succeeded",
+        "input_tokens": 22197,
+        "output_tokens": 1272,
+        "latency_ms": 14101,
+        "actual_cost_micros": 57114,
+        "validated_output": {
+          "assets": [],
+          "content": {
+            "title": "Laser-Ablation Mass Spectrometer for Isotope Ratio Analysis",
+            "problem": "The lab needs physical equipment to measure isotope ratios in rock samples using laser-ablation mass spectrometry. Success is a calibrated measurement with laboratory traceability, not data storage or visualization.",
+            "unknowns": [
+              "Expected sample volume or throughput",
+              "Required measurement precision or accuracy standards",
+              "Physical space, power, or facility requirements for the instrument",
+              "Procurement pathway or budget for scientific laboratory equipment"
+            ],
+            "constraints": [
+              "Not intended to store documents, build maps, track workflow, or create dashboards",
+              "A database or map cannot substitute for the physical measurement"
+            ],
+            "requirements": [
+              "Performs laser-ablation mass spectrometry on physical rock samples",
+              "Measures isotope ratios directly, not through modeling or estimation",
+              "Produces a calibrated, traceable physical measurement"
+            ],
+            "affectedPeople": "Laboratory scientists analyzing rock sample composition",
+            "acceptanceCriteria": [
+              "Instrument produces a calibrated isotope ratio measurement",
+              "Measurement carries laboratory traceability"
+            ]
+          },
+          "services": [],
+          "questions": [],
+          "requesterSuggestion": null
+        }
+      }
+    ]
+  },
+  "updated": {
+    "prompt": "intake-v6",
+    "effort": "medium",
+    "receipts": [
+      {
+        "job_id": "4d94eb19-9bcb-4d9a-b447-0ecf7de4abaf",
+        "prompt_version": "intake-v6",
+        "input_hash": "3e66753f5c367a1bef47217964a186ced65ab111a78eb4ebf484de9b40058348",
+        "corpus_hash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+        "input_snapshot": {
+          "turns": [],
+          "content": {},
+          "rawNeed": "The Budget Office has a working application and an already approved Colorado Azure target environment. Our release manager owns deployment. We have a repeatable build and the application source. We need a managed source repository, automatic build and test checks, security scans, release approval and a record of deployments. We do not need a new hosting environment or identity project. Success is deploying a reviewed build to the approved environment and identifying which version is running.",
+          "clarifications": []
+        },
+        "call_id": "15849a83-3ee7-48b9-bc10-1ee9dcb0c1b2",
+        "status": "succeeded",
+        "input_tokens": 22305,
+        "output_tokens": 2073,
+        "latency_ms": 24948,
+        "actual_cost_micros": 65340,
+        "validated_output": {
+          "assets": [
+            {
+              "gaps": [],
+              "fitBand": "strong",
+              "coverage": [
+                "Managed source repository",
+                "Continuous integration",
+                "Security scanning",
+                "Release approval",
+                "Deployment record"
+              ],
+              "rationale": "Provides the exact repository, build, scan, approval, and deployment tracking the requester described.",
+              "dependencies": [
+                "Connection to the existing approved Colorado Azure environment"
+              ],
+              "catalogItemId": "27d6094c-22e5-529c-a639-5fceeefded9b"
+            },
+            {
+              "gaps": ["Requires separate setup beyond the pipeline itself"],
+              "fitBand": "possible",
+              "coverage": [
+                "Release verification",
+                "Identifying running version"
+              ],
+              "rationale": "Could help confirm which version is running but adds a component not explicitly requested.",
+              "dependencies": [
+                "Integration with the delivery pipeline and target environment"
+              ],
+              "catalogItemId": "e97a8845-e2c2-5878-a089-a98612a5d692"
+            }
+          ],
+          "content": {
+            "title": "Application delivery pipeline for Budget Office app",
+            "problem": "The Budget Office needs a controlled way to build, test, scan, approve, and deploy its application to an already-approved environment. Success means deploying a reviewed build with a visible record of which version is running.",
+            "unknowns": [
+              "Whether multiple environments (e.g., test vs production) need separate approval gates",
+              "Expected frequency of releases"
+            ],
+            "constraints": [
+              "Target Colorado Azure environment is already approved and must be reused as-is",
+              "No new hosting environment should be created",
+              "No new identity project should be created",
+              "Release manager already owns deployment decisions"
+            ],
+            "requirements": [
+              "Managed source repository for the existing application code",
+              "Automatic build and test checks on code changes",
+              "Automated security scanning before release",
+              "Release approval step before deployment",
+              "Historical record of each deployment"
+            ],
+            "affectedPeople": "Budget Office release manager and application team",
+            "acceptanceCriteria": [
+              "A reviewed build can be deployed to the approved environment on demand",
+              "The currently running version can be identified after deployment",
+              "A record of past deployments is retained"
+            ]
+          },
+          "services": [
+            {
+              "gaps": [],
+              "fitBand": "strong",
+              "coverage": [
+                "Managed source repository",
+                "Automated build and test",
+                "Security scanning",
+                "Release approval",
+                "Deployment history"
+              ],
+              "rationale": "Directly provides repository, build/test, scan, approval, and deployment record for an already-approved environment.",
+              "offeringId": "5283865c-986b-53d5-ad75-e2abde201f60",
+              "relatedOfferingKeys": ["azure-application-deployment"]
+            },
+            {
+              "gaps": [
+                "Includes environment and identity setup the requester already has and does not need"
+              ],
+              "fitBand": "weak",
+              "coverage": ["Delivery pipeline"],
+              "rationale": "Bundles hosting and identity work that duplicates the requester's already-approved environment.",
+              "offeringId": "a5abfae3-5c41-5d92-adfb-527d43b8235d",
+              "relatedOfferingKeys": [
+                "delivery-pipeline-enablement",
+                "application-identity-secrets"
+              ]
+            }
+          ],
+          "questions": [
+            "Do you need separate approval steps for a test environment versus the production environment, or just one approved environment?"
+          ],
+          "requesterSuggestion": {
+            "id": "5283865c-986b-53d5-ad75-e2abde201f60",
+            "kind": "service",
+            "summary": "OIT can set up a managed pipeline that builds, tests, scans, and releases your existing application to your already-approved environment, with a record of every deployment and version.",
+            "conditions": [
+              "Your release manager will need to confirm the approval step in the pipeline",
+              "OIT will confirm the pipeline connects correctly to your existing approved environment"
+            ]
+          }
+        }
+      },
+      {
+        "job_id": "245938fc-a495-467b-a655-4f83debac113",
+        "prompt_version": "intake-v6",
+        "input_hash": "6a82e333fc2f581092256ef7f9063e47c5ad38b1f52f3c1fc7ab3ac39793b621",
+        "corpus_hash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+        "input_snapshot": {
+          "turns": [],
+          "content": {},
+          "rawNeed": "Our field teams record landslide observations where there is no network. They record rock type, GPS coordinates and condition in writing; no photographs are needed. Replace the paper form with fully offline capture and sync when they return. Other teams need a shared page filtered by site and date, available by the following morning. We have no existing record system. OIT will need to help us work out that part.",
+          "clarifications": []
+        },
+        "call_id": "8a6b8e6b-5594-4412-9037-9b03ba2987f0",
+        "status": "succeeded",
+        "input_tokens": 22290,
+        "output_tokens": 1980,
+        "latency_ms": 25362,
+        "actual_cost_micros": 64380,
+        "validated_output": {
+          "assets": [
+            {
+              "gaps": [
+                "No built-in shared page filtered by site and date",
+                "Photograph capture is unused but not a problem"
+              ],
+              "fitBand": "strong",
+              "coverage": [
+                "Works fully offline with local queueing",
+                "Captures satellite position with each entry",
+                "Reconciles on return without rekeying"
+              ],
+              "rationale": "Matches offline capture and reconciliation needs closely but a shared reporting page still requires separate design.",
+              "dependencies": [
+                "Would need a connected system to host the shared filtered view"
+              ],
+              "catalogItemId": "3e2b0ad9-316a-55fb-a0de-7ded0efd0349"
+            }
+          ],
+          "content": {
+            "title": "Offline landslide observation capture and shared review page",
+            "problem": "Field teams currently record landslide observations on paper because there is no network in the field. They need an offline tool that syncs on return and a shared page others can filter by site and date.",
+            "unknowns": [
+              "Number of field staff who will use the capture tool",
+              "How many sites and how frequently observations are recorded",
+              "Whether the shared page needs restricted access or is open to all staff",
+              "Sensitivity classification of the observation data"
+            ],
+            "constraints": [
+              "No existing record system exists today; OIT must help define that part",
+              "Field locations have no network connectivity during data collection"
+            ],
+            "requirements": [
+              "Capture rock type, GPS coordinates, and written condition notes offline",
+              "No photograph capture is needed",
+              "Sync captured entries when the device regains connectivity",
+              "Provide a shared, filterable view by site and date for other teams",
+              "Shared view must reflect prior day's field entries by the following morning"
+            ],
+            "affectedPeople": "Field observation teams and other staff who review site data",
+            "acceptanceCriteria": [
+              "Field staff can record rock type, GPS coordinates, and condition notes with no network connection",
+              "Entries sync automatically once staff return to connectivity",
+              "A shared page lets other teams filter observations by site and by date",
+              "Newly synced observations are visible on the shared page by the next morning"
+            ]
+          },
+          "services": [
+            {
+              "gaps": [
+                "No mention of the shared filtered view by site and date",
+                "No existing system to integrate results into"
+              ],
+              "fitBand": "possible",
+              "coverage": [
+                "Offline field data capture",
+                "Reference data download before departure",
+                "Synchronization on return to connectivity"
+              ],
+              "rationale": "Covers offline capture and sync but the shared reviewer page and backend system still need design.",
+              "offeringId": "54b155ee-2241-5966-ab66-47780530b104",
+              "relatedOfferingKeys": ["mobile-field-inspection"]
+            }
+          ],
+          "questions": [
+            "How many field staff need this offline capture tool, and roughly how often do they log observations?",
+            "What device do field teams currently carry or plan to use (phone, tablet, rugged GPS unit)?",
+            "Should the shared filtered page be visible to all staff, or restricted to specific teams?"
+          ],
+          "requesterSuggestion": null
+        }
+      },
+      {
+        "job_id": "2809ed58-76a1-45b3-8164-afea8aa32cc3",
+        "prompt_version": "intake-v6",
+        "input_hash": "9f1703795a6be939ab5ed2bb077ebb922cdaeadcea24b61699b42e93d3c82529",
+        "corpus_hash": "f273b58d6ff6db9a8b394b11da70e76a6887f7ff6b30fe10145b20117e0e1850",
+        "input_snapshot": {
+          "turns": [],
+          "content": {},
+          "rawNeed": "We need laboratory equipment that measures the isotope ratios in rock samples using laser-ablation mass spectrometry. The purpose is to measure the chemical composition of the physical samples, not to store documents, create maps, track a workflow or build an analysis dashboard. Success is a calibrated physical measurement with laboratory traceability. A database or map cannot perform the measurement.",
+          "clarifications": []
+        },
+        "call_id": "1f1fc183-34d3-4dbf-a958-383ef946ed15",
+        "status": "succeeded",
+        "input_tokens": 22301,
+        "output_tokens": 1007,
+        "latency_ms": 12014,
+        "actual_cost_micros": 54672,
+        "validated_output": {
+          "assets": [],
+          "content": {
+            "title": "Laser-Ablation Isotope Ratio Mass Spectrometer",
+            "problem": "The lab needs equipment to measure isotope ratios in rock samples using laser-ablation mass spectrometry. This determines chemical composition through calibrated physical measurement, not data management.",
+            "unknowns": [
+              "Which isotope systems or elements must be measured",
+              "Expected sample volume and throughput",
+              "Available lab space, power, and environmental conditions",
+              "Funding source and budget for equipment"
+            ],
+            "constraints": [
+              "Not a document store, map, workflow tracker, or dashboard",
+              "Must be physical laboratory equipment, not software"
+            ],
+            "requirements": [
+              "Instrument performs laser-ablation mass spectrometry",
+              "Instrument measures isotope ratios in rock samples",
+              "Measurement is calibrated and traceable"
+            ],
+            "affectedPeople": "Laboratory scientists analyzing rock samples",
+            "acceptanceCriteria": [
+              "Physical measurement is calibrated",
+              "Measurement is traceable to laboratory standards"
+            ]
+          },
+          "services": [],
+          "questions": [
+            "Which specific isotope systems or elements need to be measured?",
+            "How many samples per day or month must the equipment handle?",
+            "Is there existing lab space, power, and ventilation for this equipment?"
+          ],
+          "requesterSuggestion": null
+        }
+      }
+    ]
+  },
+  "observations": [
+    "Both versions selected the delivery-pipeline service for the clear-release need and withheld requester suggestions for the partial-field and no-fit needs.",
+    "Offline capture, no photographs, and next-morning shared access survived in the updated requirements. The no-fit case retained physical measurement and returned empty matching lists.",
+    "The updated field asset calls unused photograph capture a gap even though the text itself says it is not a problem. Both versions retained a weak, overbroad deployment service in reviewer evidence. Those explanations require reviewer judgment; they are not verified facts or routing decisions.",
+    "The updated version asked additional questions in cases where the baseline asked none. Fewer tokens or shorter latency does not establish lower user effort.",
+    "No request submission or satisfaction rating was produced. Real paid receipts remain in the normal application ledger."
+  ]
+}
