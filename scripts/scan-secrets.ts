@@ -40,16 +40,27 @@ interface Blob {
   content: string | null;
 }
 
+/** Unknown modes return null: scanning a different scope than the caller
+ * asked for must never read as a clean result. */
+function selectBlobs(mode: string, rest: string[]): Blob[] | null {
+  if (mode === "--worktree") return worktreeBlobs();
+  if (mode === "--staged") return stagedBlobs();
+  if (mode === "--message") return messageBlob(rest[0] ?? "");
+  if (mode === "--range")
+    return reachableBlobs(rest.length > 0 ? rest : ["HEAD"]);
+  if (mode === "--history") return reachableBlobs(["--all"]);
+  return null;
+}
+
 function main(argv: string[]): number {
   const mode = argv[0] ?? "--worktree";
-  const rest = argv.slice(1);
-  let blobs: Blob[];
-  if (mode === "--staged") blobs = stagedBlobs();
-  else if (mode === "--message") blobs = messageBlob(rest[0] ?? "");
-  else if (mode === "--range")
-    blobs = reachableBlobs(rest.length > 0 ? rest : ["HEAD"]);
-  else if (mode === "--history") blobs = reachableBlobs(["--all"]);
-  else blobs = worktreeBlobs();
+  const blobs = selectBlobs(mode, argv.slice(1));
+  if (blobs === null) {
+    console.error(
+      "Unknown scan mode. Use --worktree, --staged, --message, --range, or --history.",
+    );
+    return 2;
+  }
   const findings = scanBlobs(blobs);
   if (findings.length === 0) {
     console.log(`No credentials found (${mode}).`);

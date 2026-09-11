@@ -378,6 +378,40 @@ describe("messages", () => {
   });
 });
 
+describe("mode dispatch", () => {
+  it("rejects an unknown mode before any scan and echoes nothing back", () => {
+    const dir = sandbox();
+    // A tracked credential makes an accidental worktree fallback visible.
+    writeFileSync(join(dir, "config.yaml"), `PASSWORD: ${secret()}\n`);
+    execFileSync(GIT, ["add", "config.yaml"], { cwd: dir });
+    const result = run(dir, ["--histroy"]);
+    expect(result.code).toBe(2);
+    expect(result.output).toContain(
+      "Unknown scan mode. Use --worktree, --staged, --message, --range, or --history.",
+    );
+    expect(result.output).not.toContain("--histroy");
+    expect(result.output).not.toContain("No credentials found");
+    expect(result.output).not.toContain("Credential findings");
+  });
+
+  it("keeps the explicit and default worktree modes equivalent", () => {
+    const dir = sandbox();
+    writeFileSync(join(dir, "notes.txt"), "clean content\n");
+    expect(run(dir, ["--worktree"]).code).toBe(0);
+    expect(run(dir, []).code).toBe(0);
+    const value = secret();
+    writeFileSync(join(dir, "config.yaml"), `PASSWORD: ${value}\n`);
+    // The worktree scan reads tracked paths, so the credential must be added.
+    execFileSync(GIT, ["add", "config.yaml"], { cwd: dir });
+    for (const args of [["--worktree"], []]) {
+      const result = run(dir, args);
+      expect(result.code).toBe(1);
+      expect(result.output).toContain("credential-assignment");
+      expect(result.output).not.toContain(value);
+    }
+  });
+});
+
 describe("gates", () => {
   it("checks the staged index, not a clean working copy", () => {
     const dir = sandbox();
