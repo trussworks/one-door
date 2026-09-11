@@ -64,10 +64,8 @@ async function enter(page: Page) {
   const code = process.env.DEMO_ACCESS_CODE;
   if (!code) throw new Error("DEMO_ACCESS_CODE is required");
   await page.goto("/my");
-  await page.getByLabel("Demo access code").fill(code);
-  await page
-    .getByRole("button", { name: "Enter the demo", exact: true })
-    .click();
+  await page.getByLabel("Demo code", { exact: true }).fill(code);
+  await page.getByRole("button", { name: "Enter demo", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "My requests", exact: true }),
   ).toBeVisible();
