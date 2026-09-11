@@ -24,6 +24,14 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   sonarjs.configs.recommended,
   {
+    files: [
+      "test/fixtures/upgrade-baselines/189cf874fd03/scripts/db-seed.ts",
+      "test/fixtures/upgrade-baselines/26c0cd748c5a/scripts/db-seed.ts",
+    ],
+    // Captured source must stay byte-identical; retain its pre-ESLint-10 checks.
+    rules: { "no-useless-assignment": "off" },
+  },
+  {
     files: ["**/*.tsx", "**/*.jsx"],
     ...jsxA11y.flatConfigs.recommended,
     rules: {

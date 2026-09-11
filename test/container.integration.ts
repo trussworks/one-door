@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { setTimeout as pause } from "node:timers/promises";
 import { promisify } from "node:util";
 
@@ -111,11 +112,14 @@ try {
       ],
     ),
   );
-  // Exact, not major: the distroless base bundles 24.14.0, which predates the
-  // June 2026 security releases, so a major-only check would ship it.
+  const pinnedNode = readFileSync(
+    new URL("../Dockerfile", import.meta.url),
+    "utf8",
+  ).match(/^ARG NODE_IMAGE=node:(\d+\.\d+\.\d+)-/m)?.[1];
+  assert.ok(pinnedNode, "the builder pins a readable Node patch version");
   assert.equal(
     facts.version,
-    "24.20.0",
+    pinnedNode,
     "the runtime carries the pinned Node build, not the base's bundled one",
   );
   assert.ok(

@@ -8,6 +8,7 @@ import {
   mkdtempSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -269,7 +270,7 @@ export function scanText(path: string, text: string): Finding[] {
   if (!ts) return [{ path, line: 0, rule: "parser-unavailable" }];
   const findings = scanLines(path, text);
   for (const run of text.match(BASE64_RUN) ?? []) {
-    let decoded = "";
+    let decoded: string;
     try {
       decoded = Buffer.from(run, "base64").toString("latin1");
     } catch {
@@ -316,7 +317,7 @@ function messageOf(text: string): string {
  * tree carries no text of its own and returns null.
  */
 function objectBlob(sha: string, path: string): Blob | null {
-  let type = "";
+  let type: string;
   try {
     type = git(["cat-file", "-t", sha]).trim();
   } catch {
@@ -345,7 +346,7 @@ function objectBlob(sha: string, path: string): Blob | null {
  * no name and a tag prints with one.
  */
 function reachableBlobs(revs: string[]): Blob[] {
-  let listing = "";
+  let listing: string;
   try {
     listing = git(["rev-list", "--objects", ...revs]);
   } catch {
@@ -381,10 +382,11 @@ function worktreeBlobs(): Blob[] {
 }
 
 /**
- * secretlint runs over the bytes the mode selected, not over the checkout, and
- * it runs even when the selection is empty: an engine that cannot load reports
- * its loading error against an empty directory too, so an empty selection still
- * proves the engine works instead of reporting a clean result it never checked.
+ * secretlint runs over the bytes the mode selected, not over the checkout. A
+ * sentinel file keeps the selection nonempty, because secretlint v13 treats a
+ * matchless glob as a fatal error: the engine always scans something, a clean
+ * result is one it actually checked, and an engine that cannot load still
+ * fails against the sentinel.
  */
 function secretlintBlobs(blobs: Blob[]): Finding[] {
   if (!existsSync(SECRETLINT) || !existsSync(SECRETLINT_CONFIG))
@@ -402,6 +404,7 @@ function secretlintBlobs(blobs: Blob[]): Finding[] {
       join(dir, ".secretlintrc.json"),
       readFileSync(SECRETLINT_CONFIG),
     );
+    writeFileSync(join(dir, "scan-sentinel.txt"), "secret scan sentinel\n");
     return runSecretlint(dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -412,12 +415,78 @@ const UNAVAILABLE: Finding[] = [
   { path: "(secretlint)", line: 0, rule: "secretlint-unavailable" },
 ];
 
+/**
+ * The JSON report is one entry per scanned file, and each entry embeds the
+ * file's raw bytes as sourceContent. Take only the validated location and
+ * rule fields, relativize paths against the temporary directory, and never
+ * echo a path outside it.
+ */
+function jsonFindings(stdout: string, dir: string): Finding[] | null {
+  // The engine reports resolved paths, so /var/... may come back /private/var/...
+  const prefixes = [dir];
+  try {
+    prefixes.push(realpathSync(dir));
+  } catch {
+    // A nonexistent directory has no resolved form; the literal prefix stands.
+  }
+  let entries: unknown;
+  try {
+    entries = JSON.parse(stdout);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(entries)) return null;
+  const findings: Finding[] = [];
+  for (const entry of entries) {
+    const parsed = entryFindings(entry, prefixes);
+    if (parsed === null) return null;
+    findings.push(...parsed);
+  }
+  return findings;
+}
+
+function entryFindings(entry: unknown, prefixes: string[]): Finding[] | null {
+  if (typeof entry !== "object" || entry === null) return null;
+  const { filePath, messages } = entry as Record<string, unknown>;
+  if (typeof filePath !== "string" || !Array.isArray(messages)) return null;
+  const prefix = prefixes.find((p) => filePath.startsWith(p + "/"));
+  const path = prefix
+    ? filePath.slice(prefix.length).replace(/^\//, "")
+    : "(secretlint)";
+  const findings: Finding[] = [];
+  for (const message of messages) {
+    const finding = messageFinding(message, path);
+    if (finding === null) return null;
+    findings.push(finding);
+  }
+  return findings;
+}
+
+function messageFinding(message: unknown, path: string): Finding | null {
+  if (typeof message !== "object" || message === null) return null;
+  const { messageId, ruleId, loc } = message as {
+    messageId?: unknown;
+    ruleId?: unknown;
+    loc?: { start?: { line?: unknown } };
+  };
+  const line = loc?.start?.line;
+  if (!Number.isInteger(line)) return null;
+  let rule = "";
+  if (typeof messageId === "string" && messageId) rule = messageId;
+  else if (typeof ruleId === "string") rule = ruleId;
+  return {
+    path,
+    line: line as number,
+    rule: rule ? "secretlint:" + rule : "secretlint",
+  };
+}
+
 export function runSecretlint(dir: string): Finding[] {
   let result: SpawnSyncReturns<string>;
   try {
     result = spawnSync(
       process.execPath,
-      [SECRETLINT, "--maskSecrets", "**/*"],
+      [SECRETLINT, "--maskSecrets", "--format", "json", "**/*"],
       {
         cwd: dir,
         encoding: "utf8",
@@ -430,19 +499,13 @@ export function runSecretlint(dir: string): Finding[] {
   }
   if (result.status === 0 && !result.error) return [];
   const stdout = result.stdout ?? "";
-  const noise = stdout + (result.stderr ?? "");
-  if (/loading errors|is not found|Cannot find module/.test(noise))
+  // Only stderr can prove a loading failure: the JSON report on stdout embeds
+  // scanned file bytes, which may themselves contain these phrases.
+  if (
+    /loading errors|is not found|Cannot find module/.test(result.stderr ?? "")
+  )
     return UNAVAILABLE;
-  const findings: Finding[] = [];
-  for (const line of stdout.split("\n")) {
-    const hit = line.match(/^\s*(\d+):(\d+)\s+error/);
-    if (hit)
-      findings.push({
-        path: "(secretlint)",
-        line: Number(hit[1]),
-        rule: "secretlint",
-      });
-  }
+  const findings = jsonFindings(stdout, dir) ?? [];
   return findings.length > 0
     ? findings
     : [{ path: "(secretlint)", line: 0, rule: "secretlint" }];

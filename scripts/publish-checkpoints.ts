@@ -22,7 +22,7 @@ export function pinCheckpoints(): Checkpoint[] {
 }
 
 function remoteCheckpointOids(remote: string): string[] {
-  let output = "";
+  let output: string;
   try {
     output = git(["ls-remote", remote, "refs/entire/checkpoints/*"]);
   } catch {

@@ -1,13 +1,7 @@
-# Multi-arch OCI index digest for node:24-bookworm-slim, recorded 2026-09-06.
-# Resolves linux/amd64 for release builds and linux/arm64 for local builds.
-# Used only for building: npm, a shell and a compiler live here, not in the
-# image that ships.
-ARG NODE_IMAGE=node:24-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e
-# Multi-arch OCI index digest for gcr.io/distroless/nodejs24-debian12,
-# recorded 2026-09-06. The runtime carries ten Debian packages and none of
-# perl, pcre2, util-linux or zlib, so the package families the registry scan
-# reported are absent rather than excused.
-ARG RUNTIME_IMAGE=gcr.io/distroless/nodejs24-debian12@sha256:61f4f4341db81820c24ce771b83d202eb6452076f58628cd536cc7d94a10978b
+# Multi-architecture indexes keep local arm64 and released amd64 builds pinned.
+ARG NODE_IMAGE=node:26.8.2-trixie-slim@sha256:f7bb8247fdb16250dbec7fd0e24f091c6f5f0a29d256f3aef5816a7a369166b2
+# The runtime supplies OS libraries without a shell or package manager.
+ARG RUNTIME_IMAGE=gcr.io/distroless/nodejs26-debian13@sha256:d4883f09086d2c3ccc35d406ef5c9f8c9d06691b72336bc8612cf9a7c2980523
 
 FROM ${NODE_IMAGE} AS build
 WORKDIR /app
@@ -28,10 +22,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-# The runtime has no shell, so the writable paths are shaped here and copied
-# with their ownership and mode intact. The pinned official Node build is
-# staged here too: the distroless base bundles 24.14.0, which predates the
-# June 2026 security releases, and this base carries 24.20.0.
+# Shape writable paths before entering the shell-free runtime, and copy the
+# exact builder Node binary so the runtime base cannot choose a different patch.
 FROM ${NODE_IMAGE} AS layout
 RUN mkdir -p /layout/app/.next/cache /layout/tmp /layout/nodejs/bin \
     && cp /usr/local/bin/node /layout/nodejs/bin/node \

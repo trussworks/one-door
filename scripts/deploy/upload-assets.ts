@@ -310,6 +310,7 @@ function putIfAbsent(
     if (!winner || !matchesEntry(winner, entry, cacheControl))
       throw new Error(
         "Another writer published different content for: " + entry.key,
+        { cause: error },
       );
     return "already-published";
   }

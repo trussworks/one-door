@@ -39,6 +39,14 @@ The maintained command list is in [package.json](package.json), and [Harness CI]
 
 Domain vocabularies live in [domain/constants.ts](src/domain/constants.ts). Model calls and model jobs stay beside their draft and request references in the request schema; [models/worker.ts](src/models/worker.ts) coordinates their execution.
 
+## Dependency compatibility
+
+Node 26 is used for development, CI, and the packaged runtime. TypeScript 7 provides the standalone `tsc` check; the official TypeScript 6 compatibility package remains under the `typescript` import for ESLint and the credential scanner’s compiler API, following [Microsoft’s side-by-side installation](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/). Next.js currently resolves the compatibility package’s `tsc6` for its build check, so both compiler paths remain exercised. Historical upgrade fixtures remain unchanged. ESLint 10’s new redundant-assignment rule is exempted only for the two hash-pinned historical seed scripts; every other rule stays active there, and the new rule applies everywhere else.
+
+Two targeted npm overrides reconcile older peer-version declarations with the tested versions: jsx-a11y 6 with ESLint 10, and react-uswds 12 with focus-trap-react 12. The accessibility lint regressions, full lint, and browser checks remain enforced. Remove an override when the corresponding package publishes a compatible peer declaration.
+
+Secretlint 13 uses structured findings and still fails closed when the engine cannot complete a scan. The database-connection rule permits only the exact local test-database shell-variable templates retained in earlier CI history; actual embedded passwords remain findings. Current workflows use explicit braced interpolation. Dependency updates are grouped weekly, including majors, with one open version-update PR per ecosystem. Harness CI can be dispatched independently of a release; neither checks nor releases run automatically on pushes or pull requests.
+
 ## Reviewer and priority workflow
 
 Reviewer requests open on **Prepared assessment**, one prose page containing the confirmed need, proposed existing solutions, risk findings and priority estimates. Open a claim or estimate to work on it and ask for missing information in context. **History** is a quiet reference with a return to the working page; opening it preserves assessment drafts. Delivery is offered after review, while **Close this request without fulfillment** remains available during review. Administrator notes are in History. Older section links still resolve to their corresponding view, including the legacy review sections that now land on the assessment.

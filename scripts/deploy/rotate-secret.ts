@@ -145,6 +145,7 @@ function prepareRotation(
     if (value === undefined)
       throw new Error(
         "Prepared version is unavailable; retain this record and resolve the previous attempt before starting another preparation",
+        { cause: error },
       );
     aws(
       [

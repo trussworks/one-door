@@ -2,7 +2,7 @@ import { createDatabase } from "../src/db/client.ts";
 import { importArchitectureFixture } from "../src/seed/fixture-import.ts";
 
 const { db, sql: client } = createDatabase();
-let imported = false;
+let imported: boolean;
 try {
   imported = await importArchitectureFixture(db);
 } finally {

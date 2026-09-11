@@ -3,9 +3,9 @@
 # between its own job markers, and never touches a workflow it did not write.
 name: Harness CI
 
-# Checks run inside the manually dispatched release so the launch consumes
-# one workflow run, without separate pull-request or push-triggered runs.
+# Checks can run alone or inside a release, without automatic PR/push runs.
 on:
+  workflow_dispatch:
   workflow_call:
 
 # Least privilege: these checks only read the checked-out code. Without this
@@ -18,7 +18,7 @@ jobs:
   credentials:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -26,9 +26,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: git -c credential.helper= -c 'credential.helper=!gh auth git-credential' fetch origin '+refs/entire/checkpoints/*:refs/entire/checkpoints/*'
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
       - run: npm ci
       - run: npm run security
@@ -38,14 +38,14 @@ jobs:
   node:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
 
       - run: npm ci
@@ -79,7 +79,7 @@ jobs:
         run: |
           password="$(openssl rand -hex 24)"
           echo "::add-mask::$password"
-          echo "DATABASE_URL=postgresql://one_door:$password@localhost:5432/one_door" >> "$GITHUB_ENV"
+          echo "DATABASE_URL=postgresql://one_door:${password}@localhost:5432/one_door" >> "$GITHUB_ENV"
           docker run -d --name postgres -p 5432:5432 \
             -e POSTGRES_USER=one_door \
             -e POSTGRES_PASSWORD="$password" \
@@ -92,14 +92,14 @@ jobs:
           done
           exit 1
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
 
       - run: npm ci
@@ -160,7 +160,7 @@ jobs:
         run: |
           password="$(openssl rand -hex 24)"
           echo "::add-mask::$password"
-          echo "DATABASE_URL=postgresql://one_door:$password@localhost:25432/$DATABASE_NAME" >> "$GITHUB_ENV"
+          echo "DATABASE_URL=postgresql://one_door:${password}@localhost:25432/$DATABASE_NAME" >> "$GITHUB_ENV"
           docker run -d --name postgres -p 25432:5432 \
             -e POSTGRES_USER=one_door \
             -e POSTGRES_PASSWORD="$password" \
@@ -173,13 +173,13 @@ jobs:
           done
           exit 1
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
       - run: npm ci
       - run: npm run test:${{ matrix.suite }}
@@ -191,7 +191,7 @@ jobs:
         run: |
           password="$(openssl rand -hex 24)"
           echo "::add-mask::$password"
-          echo "E2E_DATABASE_URL=postgresql://one_door:$password@localhost:5432/one_door_e2e" >> "$GITHUB_ENV"
+          echo "E2E_DATABASE_URL=postgresql://one_door:${password}@localhost:5432/one_door_e2e" >> "$GITHUB_ENV"
           docker run -d --name postgres -p 5432:5432 \
             -e POSTGRES_USER=one_door \
             -e POSTGRES_PASSWORD="$password" \
@@ -204,25 +204,25 @@ jobs:
           done
           exit 1
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run test:browser
       - name: Retain accessibility reports
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: accessibility-reports
           path: playwright-results/**/*-accessibility.json
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:
           name: browser-failures
@@ -252,13 +252,13 @@ jobs:
           done
           exit 1
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
       - run: npm ci
       - run: |
@@ -285,11 +285,11 @@ jobs:
   infrastructure:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: 1.16.1
           terraform_wrapper: false

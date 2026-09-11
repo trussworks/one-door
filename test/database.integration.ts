@@ -190,6 +190,7 @@ async function expectAccepted(
     if (error instanceof Rollback) return;
     throw new Error(
       `${label}: expected the statement to be accepted, got ${String(error)}`,
+      { cause: error },
     );
   }
   throw new Error(`${label}: transaction unexpectedly committed`);

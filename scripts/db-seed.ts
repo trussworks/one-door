@@ -50,7 +50,7 @@ const seedHash = contentHash(seed);
 const { db, sql: client } = createDatabase();
 type SeedTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-let inserted = false;
+let inserted: boolean;
 try {
   inserted = await db.transaction(async (transaction) => {
     await transaction.execute(sql.raw("SELECT pg_advisory_xact_lock(9248662)"));

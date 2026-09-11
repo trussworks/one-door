@@ -12,7 +12,7 @@ Prerequisites:
 
 | Requirement    | Version for this setup | Check                    |
 | -------------- | ---------------------- | ------------------------ |
-| Node.js        | 24.x                   | `node --version`         |
+| Node.js        | 26.x                   | `node --version`         |
 | npm            | 11.x                   | `npm --version`          |
 | Docker Engine  | 24 or newer            | `docker version`         |
 | Docker Compose | 2.20 or newer          | `docker compose version` |

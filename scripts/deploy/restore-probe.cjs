@@ -81,7 +81,7 @@ async function startServer() {
     { cwd: "/app", stdio: "inherit" },
   );
   for (let attempt = 0; attempt < READY_ATTEMPTS; attempt++) {
-    let live = false;
+    let live;
     try {
       live = (await get("/api/live")).ok;
     } catch {
@@ -134,7 +134,7 @@ async function readQueue(flows, cookie) {
  */
 async function measureFlows(flows) {
   const server = await startServer();
-  let stopped = false;
+  let stopped;
   try {
     flows.live = (await get("/api/live")).status;
     flows.health = (await get("/api/health")).status;

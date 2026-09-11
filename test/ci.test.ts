@@ -140,10 +140,11 @@ it("runs stateful workflow suites in separate fresh CI databases", () => {
     );
 });
 
-it("runs release checks on Node 24 with full history and per-suite databases", () => {
+it("runs release checks on Node 26 with full history and per-suite databases", () => {
   const workflow = readWorkflow();
-  // The runtime image is Node 24; a Node 22 job is not the release proof.
-  expect(workflow).not.toContain('node-version: "22"');
+  const versions = [...workflow.matchAll(/node-version: "([^"]+)"/g)];
+  expect(versions.length).toBeGreaterThan(0);
+  expect(versions.every((match) => match[1] === "26")).toBe(true);
   const checkouts = workflow.match(/actions\/checkout@[a-f\d]{40}/g) ?? [];
   expect(checkouts.length).toBeGreaterThan(0);
   expect(workflow.match(/fetch-depth: 0/g) ?? []).toHaveLength(
@@ -176,6 +177,45 @@ it("ignores generated browser artifacts while linting application and test sourc
   );
   expect(await lint.isPathIgnored("src/ui/intake.tsx")).toBe(false);
   expect(await lint.isPathIgnored("test/browser.acceptance.ts")).toBe(false);
+});
+
+it("limits the new assignment-rule exception to the two frozen seed scripts", async () => {
+  const lint = new ESLint();
+  const source = 'let value = "old"; value = "new"; console.log(value);';
+  for (const filePath of [
+    "scripts/probe.ts",
+    "test/fixtures/upgrade-baselines/189cf874fd03/scripts/db-migrate.ts",
+  ]) {
+    const active = await lint.lintText(source, { filePath });
+    expect(active[0].messages.map((item) => item.ruleId)).toContain(
+      "no-useless-assignment",
+    );
+  }
+  for (const commit of ["189cf874fd03", "26c0cd748c5a"]) {
+    const filePath = `test/fixtures/upgrade-baselines/${commit}/scripts/db-seed.ts`;
+    expect((await lint.lintText(source, { filePath }))[0].messages).toEqual([]);
+    const unused = await lint.lintText("const unused = 1;", { filePath });
+    expect(unused[0].messages.map((item) => item.ruleId)).toContain(
+      "@typescript-eslint/no-unused-vars",
+    );
+  }
+});
+
+it("groups weekly dependency updates without excluding major releases", () => {
+  const config = readFileSync(
+    new URL("../.github/dependabot.yml", import.meta.url),
+    "utf8",
+  );
+  for (const ecosystem of ["npm", "docker", "github-actions"]) {
+    const update = config
+      .split("package-ecosystem: " + ecosystem + "\n")[1]
+      .split("  - package-ecosystem:")[0];
+    expect(update).toContain("interval: weekly");
+    expect(update).toContain("open-pull-requests-limit: 1");
+    expect(update).toContain('patterns: ["*"]');
+    expect(update).not.toContain("ignore:");
+    expect(update).not.toContain("update-types:");
+  }
 });
 
 it("verifies the packaged production image without supplying model credentials", () => {
@@ -283,7 +323,7 @@ it("requires the database password from the environment and matches its healthch
   expect(compose).toContain("pg_isready -U ${POSTGRES_USER:-one_door}");
 });
 
-it("runs the full check suite only through a manually dispatched release", () => {
+it("runs checks manually without publishing or through a manually dispatched release", () => {
   const release = readFileSync(
     new URL("../.github/workflows/release.yml", import.meta.url),
     "utf8",
@@ -306,7 +346,9 @@ it("runs the full check suite only through a manually dispatched release", () =>
           ),
         ),
     ).toBe(false);
-  expect(harness.split("jobs:")[0]).not.toContain("workflow_dispatch:");
+  expect(harness.split("jobs:")[0]).toContain("workflow_dispatch:");
+  expect(harness).not.toContain("id-token: write");
+  expect(harness).not.toContain("configure-aws-credentials");
   // Publishing and deploying wait for the checks, and both stay pinned to the
   // branch the release role trusts.
   expect(release).toMatch(/publish:\n\s+needs: checks/);

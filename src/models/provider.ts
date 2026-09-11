@@ -134,6 +134,15 @@ export async function resolveApiKey(): Promise<string> {
 
 type FetchLike = typeof fetch;
 
+// Transport exceptions may contain request content or credentials, including in
+// their causes; translate them without retaining the original exception.
+function sanitizedTransportError(error: unknown): Error {
+  const timeout =
+    error instanceof Error &&
+    ["TimeoutError", "AbortError"].includes(error.name);
+  return new Error(timeout ? "provider_timeout" : "provider_network_error");
+}
+
 // Reject redirects to protect the API key; expose safe codes, not provider error bodies.
 export function anthropicProvider(fetchImpl: FetchLike = fetch): ModelProvider {
   return {
@@ -169,13 +178,7 @@ export function anthropicProvider(fetchImpl: FetchLike = fetch): ModelProvider {
           signal: AbortSignal.timeout(requestTimeoutMs),
         });
       } catch (error) {
-        if (
-          error instanceof Error &&
-          ["TimeoutError", "AbortError"].includes(error.name)
-        )
-          throw new Error("provider_timeout");
-        // A redirect or network failure; the raw message may leak details.
-        throw new Error("provider_network_error");
+        throw sanitizedTransportError(error);
       }
       if (!response.ok) {
         // The body may echo request content; keep the error to status only.
