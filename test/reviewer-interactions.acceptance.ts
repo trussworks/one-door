@@ -623,6 +623,87 @@ test("priority factor drafts keep entered values and reject junk or unsupported 
   ).toBeVisible();
 });
 
+test("earlier estimate drafts report read failures and recover through retry", async ({
+  page,
+}) => {
+  let failed = true;
+  let payload: Record<string, string> | null = null;
+  let pending: Promise<void> | undefined;
+  await page.route("**/api/wip?**", async (route) => {
+    const request = route.request();
+    const query = new URL(request.url()).searchParams;
+    if (
+      request.method() !== "GET" ||
+      query.get("actingView") !== "contributor" ||
+      query.get("pageKey") !== "rice" ||
+      query.get("subjectKey") !== requestId
+    )
+      return route.continue();
+    await pending;
+    const data = payload ? { payload } : null;
+    return route.fulfill({
+      status: failed ? 503 : 200,
+      json: failed ? { error: "UNAVAILABLE" } : data,
+    });
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    failed = true;
+    payload = null;
+    await enter(page, "/review/" + requestId + "?section=priority");
+    const priority = page.locator("#priority");
+    const error = priority.getByRole("alert");
+    const loading = priority.getByText("Loading earlier estimate drafts…", {
+      exact: true,
+    });
+    const earlier = priority.locator("details").filter({
+      has: page.locator("summary", { hasText: "Your earlier estimate drafts" }),
+    });
+    await expect(error).toContainText(
+      "Could not load your earlier estimate drafts.",
+    );
+    const reach = factorCard(page, "Reach");
+    await openFactorEditor(reach);
+    await expect(
+      reach.getByLabel("How will you handle this estimate?", { exact: true }),
+    ).toBeEnabled();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - innerWidth,
+      ),
+    ).toBe(0);
+
+    await test.step("a retry reports loading and successful absence", async () => {
+      failed = false;
+      let release!: () => void;
+      pending = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      await error.getByRole("button", { name: "Retry loading" }).click();
+      try {
+        await expect(loading).toBeVisible();
+      } finally {
+        release();
+        pending = undefined;
+      }
+      await expect(loading).toHaveCount(0);
+      await expect(error).toHaveCount(0);
+      await expect(earlier).toHaveCount(0);
+    });
+
+    failed = true;
+    await page.reload();
+    await expect(error).toBeVisible();
+    failed = false;
+    payload = { reach: "275", effort: "3" };
+    await error.getByRole("button", { name: "Retry loading" }).click();
+    await earlier.locator("summary").click();
+    await expect(earlier).toContainText("275");
+    await expect(earlier).toContainText("3 person-months");
+    await expect(error).toHaveCount(0);
+  }
+});
+
 test("reach keeps the whole-count entry of the retired dialog", async ({
   page,
 }) => {

@@ -799,22 +799,35 @@ export function EarlierPriorityForm({ data }: { data: RequestView }) {
     (actorId) =>
       metadata.actors.find((actor) => actor.id === actorId)?.displayName ?? "",
   );
-  if (entries.length === 0) return null;
+  if (!source.loading && !source.error && entries.length === 0) return null;
   return (
-    <details className={styles.claim}>
-      <summary>Your earlier estimate drafts</summary>
-      <div className={styles.claimBody}>
-        <p>
-          These entries are your private drafts. They have not been adopted as
-          current reviewed values.
-        </p>
-        {entries.map((entry) => (
-          <p key={entry.label} className={styles.estimateRow}>
-            {entry.label}: {entry.value}
-          </p>
-        ))}
-      </div>
-    </details>
+    <>
+      {source.loading && <p role="status">Loading earlier estimate drafts…</p>}
+      {source.error && (
+        <Problem>
+          Could not load your earlier estimate drafts.{" "}
+          <Button type="button" onClick={source.refresh}>
+            Retry loading
+          </Button>
+        </Problem>
+      )}
+      {entries.length > 0 && (
+        <details className={styles.claim}>
+          <summary>Your earlier estimate drafts</summary>
+          <div className={styles.claimBody}>
+            <p>
+              These entries are your private drafts. They have not been adopted
+              as current reviewed values.
+            </p>
+            {entries.map((entry) => (
+              <p key={entry.label} className={styles.estimateRow}>
+                {entry.label}: {entry.value}
+              </p>
+            ))}
+          </div>
+        </details>
+      )}
+    </>
   );
 }
 
