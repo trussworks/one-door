@@ -347,23 +347,41 @@ try {
   });
   assert.equal(settleRisk?.outcome, "succeeded");
 
-  // ── 5. Reset during a genuinely claimed lease ────────────────────────────
-  const leaseJob = await enqueueModelJob(visitor, {
-    purpose: "risk_assess",
-    draftId: fixtureLease.source_draft_id,
-    requestId: fixtureLease.id,
-  });
+  // ── 5. Reset during genuinely claimed leases ─────────────────────────────
+  // Snapshot a call settled earlier in the suite; resets must not touch it.
+  const [settledBefore] = await sql<
+    { id: string; status: string; actual_cost_micros: number }[]
+  >`
+    SELECT c.id, c.status, c.actual_cost_micros
+    FROM model_calls c
+    JOIN model_jobs j ON j.current_model_call_id = c.id
+    WHERE j.id = ${prepareJob.jobId}
+  `;
+  assert.equal(settledBefore.status, "succeeded");
+
+  const leaseJobs = [] as Array<{ jobId: string }>;
+  for (const record of [fixtureLease, fixtureAnswer])
+    leaseJobs.push(
+      await enqueueModelJob(visitor, {
+        purpose: "risk_assess",
+        draftId: record.source_draft_id,
+        requestId: record.id,
+      }),
+    );
+  const leaseJobIds = leaseJobs.map((job) => job.jobId);
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
-  let signalCalled!: () => void;
-  const called = new Promise<void>((resolve) => {
-    signalCalled = resolve;
+  let claimedCount = 0;
+  let signalBothClaimed!: () => void;
+  const bothClaimed = new Promise<void>((resolve) => {
+    signalBothClaimed = resolve;
   });
   const blockingProvider: ModelProvider = {
     async complete() {
-      signalCalled();
+      claimedCount += 1;
+      if (claimedCount === 2) signalBothClaimed();
       await gate;
       return {
         outputText: riskOutput(rule.id),
@@ -372,50 +390,70 @@ try {
       };
     },
   };
-  const leasedRun = runWorkerOnce({
-    provider: blockingProvider,
-    workerId: "reset-race-worker",
-  });
-  await called;
-  const [leasedRow] = await sql.unsafe<{ lease_token: string | null }[]>(
-    `SELECT lease_token FROM model_jobs WHERE id = '${leaseJob.jobId}'`,
-  );
-  assert.ok(leasedRow.lease_token, "the job holds a real claimed lease token");
+  const leasedRuns = [
+    runWorkerOnce({ provider: blockingProvider, workerId: "reset-race-a" }),
+    runWorkerOnce({ provider: blockingProvider, workerId: "reset-race-b" }),
+  ];
+  await bothClaimed;
+  for (const jobId of leaseJobIds) {
+    const [leasedRow] = await sql<{ lease_token: string | null }[]>`
+      SELECT lease_token FROM model_jobs WHERE id = ${jobId}
+    `;
+    assert.ok(
+      leasedRow.lease_token,
+      "the job holds a real claimed lease token",
+    );
+  }
   const [riskCountBefore] = await sql.unsafe<{ total: string }[]>(
     `SELECT count(*)::text AS total FROM risk_assessments
      WHERE draft_id = '${fixtureLease.source_draft_id}'`,
   );
   const resetDuringLease = await resetFixtures(reviewer);
   assert.ok(
-    resetDuringLease.supersededModelJobs >= 1,
-    "the reset superseded the claimed job without a constraint failure",
+    resetDuringLease.supersededModelJobs >= 2,
+    "one reset superseded both claimed jobs without a constraint failure",
   );
   release();
-  const staleOutcome = await leasedRun;
-  assert.equal(staleOutcome?.jobId, leaseJob.jobId);
-  assert.equal(
-    staleOutcome?.outcome,
-    "lease_lost",
-    "the returning worker cannot settle the superseded job",
+  const staleOutcomes = await Promise.all(leasedRuns);
+  assert.deepEqual(
+    staleOutcomes.map((outcome) => outcome?.jobId).sort(),
+    [...leaseJobIds].sort(),
+    "each returning worker reports its own claimed job",
   );
-  const [leaseJobRow] = await sql.unsafe<
-    { status: string; lease_owner: string | null }[]
-  >(
-    `SELECT status, lease_owner FROM model_jobs WHERE id = '${leaseJob.jobId}'`,
-  );
-  assert.equal(leaseJobRow.status, "superseded");
-  assert.equal(leaseJobRow.lease_owner, null);
-  const [leaseCall] = await sql.unsafe<
-    { status: string; sanitized_error: string; reserved_cost_micros: number }[]
-  >(
-    `SELECT c.status, c.sanitized_error, c.reserved_cost_micros
-     FROM model_calls c
-     JOIN model_jobs j ON j.current_model_call_id = c.id
-     WHERE j.id = '${leaseJob.jobId}'`,
-  );
-  assert.equal(leaseCall.status, "failed", "reservation reconciled by reset");
-  assert.equal(leaseCall.sanitized_error, "fixture_reset_superseded");
-  assert.ok(Number(leaseCall.reserved_cost_micros) > 0, "spend stays charged");
+  for (const outcome of staleOutcomes)
+    assert.equal(
+      outcome?.outcome,
+      "lease_lost",
+      "the returning worker cannot settle the superseded job",
+    );
+  for (const jobId of leaseJobIds) {
+    const [leaseJobRow] = await sql<
+      { status: string; lease_owner: string | null }[]
+    >`
+      SELECT status, lease_owner FROM model_jobs WHERE id = ${jobId}
+    `;
+    assert.equal(leaseJobRow.status, "superseded");
+    assert.equal(leaseJobRow.lease_owner, null);
+    const [leaseCall] = await sql<
+      {
+        status: string;
+        sanitized_error: string;
+        reserved_cost_micros: number;
+      }[]
+    >`
+      SELECT c.status, c.sanitized_error, c.reserved_cost_micros
+      FROM model_calls c
+      JOIN model_jobs j ON j.current_model_call_id = c.id
+      WHERE j.id = ${jobId}
+    `;
+    assert.ok(leaseCall, "the claimed reservation has a call to reconcile");
+    assert.equal(leaseCall.status, "failed", "reservation reconciled by reset");
+    assert.equal(leaseCall.sanitized_error, "fixture_reset_superseded");
+    assert.ok(
+      Number(leaseCall.reserved_cost_micros) > 0,
+      "spend stays charged",
+    );
+  }
   const [riskCountAfter] = await sql.unsafe<{ total: string }[]>(
     `SELECT count(*)::text AS total FROM risk_assessments
      WHERE draft_id = '${fixtureLease.source_draft_id}'`,
@@ -426,6 +464,55 @@ try {
     "no proposals leak back from the stale worker",
   );
 
+  // ── 6. A queued job without a call exercises the empty branch; settled
+  //       spend stays untouched ────────────────────────────────────────────
+  const [failedTotalBefore] = await sql<{ total: string }[]>`
+    SELECT count(*)::text AS total FROM model_calls
+    WHERE sanitized_error = 'fixture_reset_superseded'
+  `;
+  const queuedOnly = await enqueueModelJob(visitor, {
+    purpose: "risk_assess",
+    draftId: fixtureLease.source_draft_id,
+    requestId: fixtureLease.id,
+  });
+  const resetOverQueued = await resetFixtures(reviewer);
+  assert.ok(
+    resetOverQueued.supersededModelJobs >= 1,
+    "the queued job was superseded",
+  );
+  const [queuedRow] = await sql<
+    { status: string; current_model_call_id: string | null }[]
+  >`
+    SELECT status, current_model_call_id FROM model_jobs
+    WHERE id = ${queuedOnly.jobId}
+  `;
+  assert.equal(queuedRow.status, "superseded");
+  assert.equal(
+    queuedRow.current_model_call_id,
+    null,
+    "a never-claimed job has no call to reconcile",
+  );
+  const [failedTotalAfter] = await sql<{ total: string }[]>`
+    SELECT count(*)::text AS total FROM model_calls
+    WHERE sanitized_error = 'fixture_reset_superseded'
+  `;
+  assert.equal(
+    failedTotalAfter.total,
+    failedTotalBefore.total,
+    "the empty call-ID branch fails no additional call",
+  );
+  const [settledAfter] = await sql<
+    { status: string; actual_cost_micros: number }[]
+  >`
+    SELECT status, actual_cost_micros FROM model_calls
+    WHERE id = ${settledBefore.id}
+  `;
+  assert.equal(settledAfter.status, "succeeded", "settled call retained");
+  assert.equal(
+    Number(settledAfter.actual_cost_micros),
+    Number(settledBefore.actual_cost_micros),
+    "settled accounting unchanged",
+  );
   console.log(
     [
       "Reset interaction checks passed:",
