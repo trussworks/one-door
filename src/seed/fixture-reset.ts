@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import type { createDatabase } from "../db/client.ts";
 import type { ActorContext } from "../workflow/shared.ts";
@@ -12,6 +12,7 @@ import {
   fixtureSeedManifests,
   inventoryConflicts,
   inventorySources,
+  modelCalls,
   requests,
   reviewTasks,
   riskFindings,
@@ -122,16 +123,16 @@ async function supersedeFixtureModelJobs(
     .map((row) => row.current_model_call_id)
     .filter((id): id is string => id !== null);
   if (callIds.length > 0) {
-    await transaction.execute(
-      sql.raw(`
-        UPDATE model_calls SET
-          status = 'failed',
-          sanitized_error = 'fixture_reset_superseded',
-          completed_at = now()
-        WHERE status = 'reserved'
-          AND id IN (${callIds.map((id) => `'${id}'`).join(", ")})
-      `),
-    );
+    await transaction
+      .update(modelCalls)
+      .set({
+        status: "failed",
+        sanitizedError: "fixture_reset_superseded",
+        completedAt: sql`now()`,
+      })
+      .where(
+        and(eq(modelCalls.status, "reserved"), inArray(modelCalls.id, callIds)),
+      );
   }
   return superseded.length;
 }
