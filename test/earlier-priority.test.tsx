@@ -2,7 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, expect, it, vi } from "vitest";
 import type { RequestView } from "../src/server/request-views";
 import type { ReadResult } from "../src/ui/use-data";
-import { EarlierPriorityForm } from "../src/ui/priority-contributions";
+import {
+  EarlierPriorityForm,
+  SavedWorkProblem,
+} from "../src/ui/priority-contributions";
+import { savedWorkStatus } from "../src/ui/saved-work-controller";
 
 const state = vi.hoisted(() => ({
   read: { path: null } as ReadResult<{
@@ -61,5 +65,25 @@ it.each(["loaded", "loading", "failed"])(
     expect(html).toContain("275");
     expect(html).toContain("3 person-months");
     expect(html.includes('role="alert"')).toBe(status === "failed");
+  },
+);
+
+it.each(["failed", "conflict"] as const)(
+  "makes a bare review owner's %s save visible and recoverable",
+  (kind) => {
+    const work = {
+      status: savedWorkStatus[kind],
+      flush: vi.fn(),
+      overwriteWithLatestBase: vi.fn(),
+    } as unknown as Parameters<typeof SavedWorkProblem>[0]["work"];
+    const html = renderToStaticMarkup(<SavedWorkProblem work={work} />);
+    expect(html).toContain(savedWorkStatus[kind].message);
+    expect(html).toContain(
+      kind === "failed"
+        ? "Retry draft save"
+        : "Replace newer server draft with my entries",
+    );
+    work.status = savedWorkStatus.loaded;
+    expect(renderToStaticMarkup(<SavedWorkProblem work={work} />)).toBe("");
   },
 );

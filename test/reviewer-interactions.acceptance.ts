@@ -4,6 +4,7 @@ import {
   type BrowserContext,
   type ElementHandle,
   type Page,
+  type Request,
 } from "@playwright/test";
 
 const requestId = "08da46a7-a463-5b17-a589-8681f9c579ba";
@@ -724,21 +725,39 @@ test("reach keeps the whole-count entry of the retired dialog", async ({
     await count.fill(junk);
     await expect(count).toHaveValue("250");
   }
-  // A failed draft save must not lose the entry: the browser backup
-  // restores the count after reload, as the retired wizard promised.
+  const reachDraft = (request: Request) => {
+    if (
+      new URL(request.url()).pathname !== "/api/wip" ||
+      request.method() !== "POST"
+    )
+      return false;
+    const body = request.postDataJSON();
+    return body.pageKey === "priority-reach" && body.subjectKey === requestId;
+  };
   await page.route("**/api/wip", (route) =>
-    route.request().method() === "POST"
+    reachDraft(route.request())
       ? route.fulfill({ status: 503, json: { error: "UNAVAILABLE" } })
       : route.continue(),
   );
-  await count.fill("275");
-  await page.waitForTimeout(1200);
-  await page.unroute("**/api/wip");
-  page.on("dialog", (dialog) => dialog.accept());
-  await page.reload();
-  await expect(page.getByText("Loading your draft…")).toHaveCount(0);
-  await openFactorEditor(reach);
-  await expect(count).toHaveValue("275");
+  const failedSave = page.waitForResponse(
+    (response) =>
+      reachDraft(response.request()) &&
+      response.request().postDataJSON().payload.value === "275",
+  );
+  try {
+    await count.fill("275");
+    expect((await failedSave).status()).toBe(503);
+    await expect(reach.getByRole("status")).toContainText(
+      "Draft save could not be confirmed.",
+    );
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.reload();
+    await expect(page.getByText("Loading your draft…")).toHaveCount(0);
+    await openFactorEditor(reach);
+    await expect(count).toHaveValue("275");
+  } finally {
+    await page.unroute("**/api/wip");
+  }
 });
 
 test("administrator notes live in the history section and the assessment stays clean", async ({

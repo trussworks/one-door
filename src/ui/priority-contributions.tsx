@@ -17,7 +17,11 @@ import type { RecordProps } from "./record-form";
 import { useRecordForm } from "./record-form";
 import { useApp } from "./shell";
 import { Field, Problem, SavedWorkFieldset } from "./fields";
-import { FormMessages } from "./saved-work-presentation";
+import {
+  FormMessages,
+  needsSaveAttention,
+  SaveStatus,
+} from "./saved-work-presentation";
 import { useSavedWork } from "./use-saved-work";
 import { useData } from "./use-data";
 import {
@@ -484,13 +488,21 @@ function FactorLineNotes({
   );
 }
 
-/** A bare saved-work owner names its failed load itself; the submission
- * boundary only says work is pending. The control gives the reload path. */
+/** Bare owners need their own failure controls: the completion form's
+ * status describes only its own saved work. */
 export function SavedWorkProblem({
   work,
 }: {
   work: ReturnType<typeof useSavedWork>;
 }) {
+  if (needsSaveAttention(work.status))
+    return (
+      <SaveStatus
+        status={work.status}
+        retry={() => void work.flush().catch(() => {})}
+        replace={() => void work.overwriteWithLatestBase().catch(() => {})}
+      />
+    );
   if (work.status.kind !== "loadFailed") return null;
   return (
     <p className="usa-error-message" role="alert">
