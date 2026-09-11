@@ -220,36 +220,26 @@ try {
   });
   // The recorded field decisions and the persisted row must describe one
   // object, for supplied fields and applied defaults alike.
-  const [addedRow] = await sql.unsafe<Record<string, unknown>[]>(
-    `SELECT name, description, item_type, owner_organization_id,
-            capabilities, data_classifications, approval_status, vendor
-     FROM catalog_items WHERE id = '${added.catalogItemId}'`,
-  );
-  const addedDecisions = await sql.unsafe<
-    { field_name: string; value: string }[]
-  >(
-    `SELECT field_name, value::text AS value FROM catalog_field_decisions
-     WHERE catalog_item_id = '${added.catalogItemId}'`,
-  );
-  const persisted: Record<string, unknown> = {
-    name: addedRow.name,
-    description: addedRow.description,
-    itemType: addedRow.item_type,
-    ownerOrganizationId: addedRow.owner_organization_id,
-    capabilities: addedRow.capabilities,
-    dataClassifications: addedRow.data_classifications,
-  };
+  const [addedRow] = await sql<Record<string, unknown>[]>`
+    SELECT name, description, item_type AS "itemType",
+           owner_organization_id AS "ownerOrganizationId",
+           capabilities, data_classifications AS "dataClassifications",
+           approval_status AS "approvalStatus", vendor
+    FROM catalog_items WHERE id = ${added.catalogItemId}`;
+  const addedDecisions = await sql<{ field_name: string; value: string }[]>`
+    SELECT field_name, value::text AS value FROM catalog_field_decisions
+    WHERE catalog_item_id = ${added.catalogItemId}`;
   assert.equal(addedDecisions.length, 6, "one decision per provenance entry");
   for (const decision of addedDecisions)
     assert.deepEqual(
       JSON.parse(decision.value),
-      persisted[decision.field_name],
+      addedRow[decision.field_name],
       `decision value matches the persisted ${decision.field_name}`,
     );
   assert.deepEqual(addedRow.capabilities, [], "list default persisted");
   assert.equal(addedRow.vendor, null, "absent vendor stored as null");
   assert.equal(
-    addedRow.approval_status,
+    addedRow.approvalStatus,
     "review_required",
     "status default persisted",
   );
