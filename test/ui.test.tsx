@@ -3,12 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, expect, it, vi } from "vitest";
 import { Problem, Field, SavedWorkFieldset } from "../src/ui/fields";
 import { TaskRating } from "../src/ui/rating-presentation";
-import {
-  RiceEditor,
-  RiceFields,
-  effortInDays,
-  effortInMonths,
-} from "../src/ui/rice-editor";
 import { InlineChange, textChange } from "../src/ui/request-summary";
 import Landing from "../src/app/page";
 import { ModelWaiting } from "../src/ui/fields";
@@ -33,7 +27,6 @@ import {
   assetOutcomeReady,
   preparationNeeded,
 } from "../src/ui/review-decisions";
-import type { useSavedWork } from "../src/ui/use-saved-work";
 import { queueRiskLabel, queueReviewer } from "../src/ui/review-queue";
 import {
   simulatedClosure,
@@ -330,14 +323,6 @@ it("shows changes inline, including removals, without relying on color", () => {
   }
 });
 
-it("keeps saved RICE calculations and old WIP unchanged when effort is entered in days", () => {
-  for (const months of ["", "0.01", "0.07", "0.3", "3", "12.5"]) {
-    expect(effortInMonths(effortInDays(months))).toBe(months);
-  }
-  expect(effortInDays("3")).toBe("60");
-  expect((120 * 2 * 0.8) / Number(effortInMonths("60"))).toBe(64);
-});
-
 it("groups every supplied summary fact without inventing empty-field text", () => {
   const html = renderToStaticMarkup(
     createElement(RequestSummary, {
@@ -569,69 +554,6 @@ it("names the waiting party without treating the reviewer as the requester", () 
   expect(requestPhaseLabel(data)).toBe("Waiting for requester");
 });
 
-it("explains every RICE factor beside its inputs and preserves each factor's evidence", () => {
-  const html = renderToStaticMarkup(
-    createElement(RiceEditor, {
-      request: {
-        requestId: "r1",
-        rowVersion: 1,
-        title: "A service need",
-        displayId: "OD-1",
-        rice: {
-          reach: "120",
-          reachUnit: "analysts",
-          reachPeriod: "next quarter",
-          impact: "2",
-          confidence: "0.8",
-          effort: "3",
-          reachRationale: "Count evidence",
-          impactRationale: "Impact evidence",
-          confidenceRationale: "Confidence evidence",
-          effortRationale: "Delivery estimate",
-          effortActorId: "a1",
-        },
-      },
-      visitor: { visitorId: "v1", actorId: "a1" },
-      actors: [{ id: "a1", displayName: "Delivery lead" }],
-      onClose: () => {},
-      refreshRequest: () => {},
-      onSaved: () => {},
-    }),
-  );
-  for (const [step, name] of [
-    "reach",
-    "impact",
-    "confidence",
-    "effort",
-  ].entries()) {
-    const markup = renderToStaticMarkup(
-      createElement(RiceFields, {
-        step,
-        actors: [{ id: "a1", displayName: "Delivery lead" }],
-        work: {
-          values: { effort: "3", [name + "Rationale"]: name + " evidence" },
-          change: () => {},
-        } as unknown as ReturnType<typeof useSavedWork>,
-      }),
-    );
-    expect(markup).toContain('id="' + name + '-guidance"');
-    expect(markup).toContain('aria-describedby="' + name + '-guidance"');
-    expect(markup).toContain(name + " evidence");
-    expect(
-      markup.match(new RegExp('data-factor="' + name + '"', "g")),
-    ).toHaveLength(1);
-    if (name === "effort") {
-      expect(markup).toContain("Total working days");
-      expect(markup).toContain('name="effort" value="60"');
-    }
-  }
-  expect(html).toContain("64.00");
-  expect(html).toContain("Step 1 of 4");
-  expect(html).not.toContain('id="effort-guidance"');
-  expect(html).toContain("Use your team’s evidence and estimates");
-  expect(html).toMatch(/^<dialog[^>]+aria-labelledby="rice-heading"/);
-});
-
 it("offers preparation only when an assessment needs work", () => {
   const job = { status: "succeeded", current: true } as NonNullable<
     RequestView["currentJobs"]["asset_match"]
@@ -670,23 +592,6 @@ it("guides reviewers to each unfinished section once without treating owner fiel
     ]),
   ).toEqual(["fit", "risk", "priority"]);
   expect(remainingReviewSections(["OPEN_CLARIFICATION"])).toEqual(["need"]);
-});
-
-it("displays existing numeric impact values, including saved estimates between the named levels", () => {
-  for (const value of ["2.00", "1.50"]) {
-    const markup = renderToStaticMarkup(
-      createElement(RiceFields, {
-        step: 1,
-        actors: [],
-        work: {
-          values: { impact: value },
-          change: () => {},
-        } as unknown as ReturnType<typeof useSavedWork>,
-      }),
-    );
-    expect(markup).toContain('value="' + Number(value) + '" selected=""');
-    if (value === "1.50") expect(markup).toContain("Saved estimate: 1.5");
-  }
 });
 
 it("reopens the gate when an API session expires instead of hiding a failed save", async () => {
@@ -1192,6 +1097,21 @@ it("labels a completed review without a score as pending, never as a fixed blank
 });
 
 it("converts people's units to stored units and back for display", () => {
+  for (const [months, days] of [
+    [0.01, 0.2],
+    [0.07, 1.4],
+    [0.3, 6],
+    [3, 60],
+    [12.5, 250],
+  ]) {
+    expect(entryToValue("effort", String(days))).toBe(months);
+    expect(displayEstimate("effort", { value: months, basis: "" })).toBe(
+      `${months} person-months (${days} working days)`,
+    );
+  }
+  expect((120 * 2 * 0.8) / entryToValue("effort", "60")!).toBe(64);
+  expect(entryToValue("impact", "1.50")).toBe(1.5);
+  expect(displayEstimate("impact", { value: 1.5, basis: "" })).toBe("1.5");
   expect(entryToValue("confidence", "80")).toBeCloseTo(0.8, 5);
   expect(entryToValue("effort", "45")).toBeCloseTo(2.25, 5);
   expect(entryToValue("reach", "120")).toBe(120);
