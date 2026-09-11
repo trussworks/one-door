@@ -470,11 +470,13 @@ try {
     SELECT count(*)::text AS total FROM model_calls
     WHERE sanitized_error = 'fixture_reset_superseded'
   `;
+  // Enqueue reuses even a superseded logical job; use an untried purpose.
   const queuedOnly = await enqueueModelJob(visitor, {
-    purpose: "risk_assess",
+    purpose: "asset_match",
     draftId: fixtureLease.source_draft_id,
     requestId: fixtureLease.id,
   });
+  assert.equal(queuedOnly.status, "queued", "the probe starts unclaimed");
   const resetOverQueued = await resetFixtures(reviewer);
   assert.ok(
     resetOverQueued.supersededModelJobs >= 1,
