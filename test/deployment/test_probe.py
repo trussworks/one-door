@@ -5,14 +5,38 @@ from pathlib import Path
 import sys
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import urllib.error
 
-sys.modules.setdefault("boto3", SimpleNamespace())
-sys.modules.setdefault("botocore.exceptions", SimpleNamespace(BotoCoreError=OSError, ClientError=RuntimeError))
-spec = importlib.util.spec_from_file_location("probe", Path(__file__).parents[2] / "infra/platform/probe.py")
-probe = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(probe)
+
+class FakeBotoCoreError(Exception):
+    pass
+
+
+class FakeClientError(Exception):
+    pass
+
+
+def load_probe():
+    """Load probe.py with scoped SDK doubles; the module cache is restored
+    afterward, so these tests neither depend on nor disturb any real SDK a
+    maintainer's interpreter has already imported."""
+    doubles = {
+        "boto3": SimpleNamespace(),
+        "botocore.exceptions": SimpleNamespace(
+            BotoCoreError=FakeBotoCoreError, ClientError=FakeClientError
+        ),
+    }
+    with patch.dict(sys.modules, doubles):
+        spec = importlib.util.spec_from_file_location(
+            "probe", Path(__file__).parents[2] / "infra/platform/probe.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    return module
+
+
+probe = load_probe()
 
 
 class Response:
@@ -51,7 +75,7 @@ class ProbeTests(unittest.TestCase):
 
     def test_ecs_error_preserves_http_measurement(self):
         ecs = ECS()
-        ecs.describe_services = lambda **args: (_ for _ in ()).throw(OSError("throttled"))
+        ecs.describe_services = Mock(side_effect=FakeBotoCoreError("throttled"))
         result = probe.collect(lambda *a, **k: Response({"status": "ok"}), ecs,
                                "https://example.cloudfront.net", "cluster", "web", "worker")
         self.assertEqual(result["Ready"], 1)
@@ -101,6 +125,46 @@ class ProbeTests(unittest.TestCase):
                                "web", "worker")
         self.assertEqual(result["Ready"], 0)
         self.assertEqual(result["Heartbeat"], 1)
+
+
+class LoadProbeTests(unittest.TestCase):
+    def test_loading_is_independent_of_prior_sdk_imports(self):
+        # Absent SDK modules: loading works and leaves no doubles behind.
+        with patch.dict(sys.modules):
+            sys.modules.pop("boto3", None)
+            sys.modules.pop("botocore.exceptions", None)
+            fresh = load_probe()
+            self.assertNotIn("boto3", sys.modules)
+            self.assertNotIn("botocore.exceptions", sys.modules)
+        # Preloaded distinct SDK modules: loading still binds the dedicated
+        # fakes and restores the preloaded entries untouched.
+        preloaded_boto3 = SimpleNamespace()
+        preloaded_exceptions = SimpleNamespace(
+            BotoCoreError=type("RealBotoCoreError", (Exception,), {}),
+            ClientError=type("RealClientError", (Exception,), {}),
+        )
+        with patch.dict(
+            sys.modules,
+            {
+                "boto3": preloaded_boto3,
+                "botocore.exceptions": preloaded_exceptions,
+            },
+        ):
+            loaded = load_probe()
+            self.assertIs(sys.modules["boto3"], preloaded_boto3)
+            self.assertIs(
+                sys.modules["botocore.exceptions"], preloaded_exceptions
+            )
+        for module in (fresh, loaded):
+            self.assertIs(module.BotoCoreError, FakeBotoCoreError)
+            ecs = ECS()
+            ecs.describe_services = Mock(
+                side_effect=FakeBotoCoreError("throttled")
+            )
+            result = module.collect(
+                lambda *a, **k: Response({"status": "ok"}), ecs,
+                "https://example.cloudfront.net", "cluster", "web", "worker")
+            self.assertEqual(result["ECSCollectionSucceeded"], 0)
 
 
 if __name__ == "__main__":
