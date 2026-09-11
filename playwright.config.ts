@@ -21,6 +21,7 @@ export default defineConfig({
     "reviewer-contributions.acceptance.ts",
     "review-boundary.acceptance.ts",
     "focus.acceptance.ts",
+    "draft-lifecycle.acceptance.ts",
   ],
   outputDir: "./playwright-results",
   forbidOnly: true,

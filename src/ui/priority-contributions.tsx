@@ -2,7 +2,7 @@
 
 import styles from "./review-brief.module.css";
 
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Button, Label, Select } from "@trussworks/react-uswds";
 import {
   priorityFactors,
@@ -409,7 +409,7 @@ function FactorLine({
       reason: "",
     },
   );
-  if (mutable) registerFactor(register, view.factor, work);
+  useLayoutEffect(() => registerFactor(register, view.factor, work, mutable));
   const actorName = (id: string | null) =>
     metadata.actors.find((actor) => actor.id === id)?.displayName ??
     "Unknown person";
@@ -457,7 +457,9 @@ function registerFactor(
   register: PriorityRegister,
   factor: PriorityFactor,
   work: ReturnType<typeof useSavedWork>,
+  mutable: boolean,
 ) {
+  if (!mutable) return;
   register(factor, work.values, {
     ready: work.ready,
     failed: work.status.kind === "loadFailed",

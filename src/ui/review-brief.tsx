@@ -2,7 +2,7 @@
 
 import styles from "./review-brief.module.css";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Button, Label, Select } from "@trussworks/react-uswds";
@@ -358,14 +358,9 @@ type Register = (
   owner: DraftOwner,
 ) => void;
 
-/** Claim editors report their live values here on every change, so the one
- * submission reads current drafts synchronously. The Actions section
- * subscribes: a changed draft or a readiness transition re-derives the
- * completion hold. An owner whose saved work has not loaded still shows
- * its initial values, so the submission boundary must wait for every
- * registered owner's readiness — otherwise a pending saved draft would be
- * silently omitted. Notification is deferred to a microtask because
- * register runs during a child render. */
+/** Owners publish after commit, so abandoned renders cannot change what
+ * the submission reads. Readiness also accounts for required owners that
+ * have not published yet; absence must not mean an empty draft. */
 type DraftStore = {
   registry: DraftRegistry;
   register: Register;
@@ -378,14 +373,8 @@ export function createDraftStore(): DraftStore {
   const registry: DraftRegistry = new Map();
   const listeners = new Set<() => void>();
   let version = 0;
-  let queued = false;
   const notify = () => {
-    if (queued) return;
-    queued = true;
-    queueMicrotask(() => {
-      queued = false;
-      for (const listener of listeners) listener();
-    });
+    for (const listener of listeners) listener();
   };
   return {
     registry,
@@ -431,22 +420,22 @@ function useDraftStore(): DraftStore {
   return store;
 }
 
-/** How many registered draft owners have not finished loading their saved
- * work. A submission that runs before the count reaches zero would read
- * initial values in place of the person's pending saved draft. */
+/** Missing owners count as pending until their first committed publication. */
 export function pendingDrafts(
   registry: ReadonlyMap<string, { ready: boolean }>,
+  required: Iterable<string>,
 ): number {
   let pending = 0;
-  for (const entry of registry.values()) if (!entry.ready) pending++;
+  for (const key of required) if (!registry.get(key)?.ready) pending++;
   return pending;
 }
 
 export function failedDrafts(
   registry: ReadonlyMap<string, { failed?: boolean }>,
+  required: Iterable<string>,
 ): number {
   let failed = 0;
-  for (const entry of registry.values()) if (entry.failed) failed++;
+  for (const key of required) if (registry.get(key)?.failed) failed++;
   return failed;
 }
 
@@ -532,7 +521,7 @@ export function ReviewBrief(
   );
   const priority = priorityOf(data);
   const rows = inputRequestsOf(data);
-  useEffect(() => {
+  useLayoutEffect(() => {
     store.retain(currentDraftKeys(data, priority ?? null));
   }, [store, data, priority]);
   const claimProps = {
@@ -708,11 +697,13 @@ function EmptyOutcomeAffirmation({
     },
     { affirmed: "" },
   );
-  if (mutable)
-    register("outcome", kind, work.values, {
-      ready: work.ready,
-      failed: work.status.kind === "loadFailed",
-    });
+  useLayoutEffect(() => {
+    if (mutable)
+      register("outcome", kind, work.values, {
+        ready: work.ready,
+        failed: work.status.kind === "loadFailed",
+      });
+  });
   return (
     <div>
       <p>{statement}</p>
@@ -756,11 +747,13 @@ function FitClaim(
       reason: candidate.reason ?? "",
     },
   );
-  if (mutable)
-    props.register("asset", candidate.id, work.values, {
-      ready: work.ready,
-      failed: work.status.kind === "loadFailed",
-    });
+  useLayoutEffect(() => {
+    if (mutable)
+      props.register("asset", candidate.id, work.values, {
+        ready: work.ready,
+        failed: work.status.kind === "loadFailed",
+      });
+  });
   const marker = fitMarker(candidate, mutable ? work.values : null, rows);
   const open = props.open === candidate.id;
   return (
@@ -1051,11 +1044,13 @@ function RiskClaim(
     },
     riskDraftInitial(finding),
   );
-  if (mutable)
-    props.register("risk", finding.id, work.values, {
-      ready: work.ready,
-      failed: work.status.kind === "loadFailed",
-    });
+  useLayoutEffect(() => {
+    if (mutable)
+      props.register("risk", finding.id, work.values, {
+        ready: work.ready,
+        failed: work.status.kind === "loadFailed",
+      });
+  });
   const marker = riskMarker(finding, mutable ? work.values : null, rows);
   const open = props.open === finding.id;
   return (
@@ -2036,8 +2031,9 @@ function FinishPanel({
   useSyncExternalStore(store.subscribe, store.version, store.version);
   const draftFor = draftReader(store.registry);
   const hold = completionHold(data, priority, draftFor);
-  const pending = pendingDrafts(store.registry);
-  const failed = failedDrafts(store.registry);
+  const required = currentDraftKeys(data, priority);
+  const pending = pendingDrafts(store.registry, required);
+  const failed = failedDrafts(store.registry, required);
   const send = useFinishSend({
     data,
     priority,
@@ -2217,7 +2213,7 @@ function BoundaryHold({
 
 /** Both finish actions share one path: save-progress submits the drafts
  * alone; complete adds the completion payload to the same transaction. */
-function useFinishSend({
+export function useFinishSend({
   data,
   priority,
   store,
@@ -2252,7 +2248,10 @@ function useFinishSend({
     /* A submission before every owner's saved work loads — or before this
      * form's own nonce draft loads — would read initial values in place
      * of a pending saved draft. */
-    if (pendingDrafts(registry) > 0 || !form.work.ready) {
+    if (
+      pendingDrafts(registry, currentDraftKeys(data, priority)) > 0 ||
+      !form.work.ready
+    ) {
       setError("Drafts are still loading. Wait before recording the review.");
       return;
     }
@@ -2332,7 +2331,7 @@ async function resetUnchangedPriorityDrafts(
 
 /** After first review completes, unresolved priority work still needs a
  * save path: the same submission, priority decisions only. */
-function PostReviewPrioritySave({
+export function PostReviewPrioritySave({
   data,
   changed,
   store,
@@ -2346,7 +2345,8 @@ function PostReviewPrioritySave({
   /* Re-render on draft changes and readiness transitions, exactly as the
    * pre-completion form does. */
   useSyncExternalStore(store.subscribe, store.version, store.version);
-  const pending = pendingDrafts(registry);
+  const required = currentDraftKeys(data, priority);
+  const pending = pendingDrafts(registry, required);
   const form = useRecordForm({
     data,
     changed,
@@ -2355,7 +2355,7 @@ function PostReviewPrioritySave({
   });
   async function save() {
     setError("");
-    if (pendingDrafts(registry) > 0 || !form.work.ready) {
+    if (pendingDrafts(registry, required) > 0 || !form.work.ready) {
       setError("Drafts are still loading. Wait before recording the review.");
       return;
     }
@@ -2387,7 +2387,10 @@ function PostReviewPrioritySave({
   }
   return (
     <SavedWorkFieldset ready={form.work.ready}>
-      <BoundaryHold pending={pending} failed={failedDrafts(registry)} />
+      <BoundaryHold
+        pending={pending}
+        failed={failedDrafts(registry, required)}
+      />
       {error && (
         <p className="usa-error-message" role="alert">
           {error}

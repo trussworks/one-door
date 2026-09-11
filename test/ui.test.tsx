@@ -1816,17 +1816,34 @@ it("keeps the readiness sentence agreeing with the submit guard when a recorded 
   ]);
 });
 
+it("requires every current owner before submission and ignores retired owners", () => {
+  const store = createDraftStore();
+  const required = new Set(["asset:c1", "priority:reach"]);
+  expect(pendingDrafts(store.registry, required)).toBe(2);
+  store.register("risk", "retired", {}, { ready: false, failed: true });
+  expect(pendingDrafts(store.registry, required)).toBe(2);
+  expect(failedDrafts(store.registry, required)).toBe(0);
+  store.register("asset", "c1", {}, { ready: true });
+  expect(pendingDrafts(store.registry, required)).toBe(1);
+  store.register("priority", "reach", {}, { ready: false, failed: true });
+  expect(pendingDrafts(store.registry, required)).toBe(1);
+  expect(failedDrafts(store.registry, required)).toBe(1);
+  store.register("priority", "reach", {}, { ready: true });
+  expect(pendingDrafts(store.registry, required)).toBe(0);
+  expect(failedDrafts(store.registry, required)).toBe(0);
+});
+
 it("tracks each draft owner's readiness so a loading owner blocks the submission boundary", () => {
   const store = createDraftStore();
   const start = store.version();
   store.register("asset", "c1", { decision: "" }, { ready: false });
   const registered = store.version();
   expect(registered).toBeGreaterThan(start);
-  expect(pendingDrafts(store.registry)).toBe(1);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(1);
   /* Same values, readiness flips: the boundary must still hear about it. */
   store.register("asset", "c1", { decision: "" }, { ready: true });
   expect(store.version()).toBeGreaterThan(registered);
-  expect(pendingDrafts(store.registry)).toBe(0);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(0);
   /* An identical re-registration stays quiet. */
   const settled = store.version();
   store.register("asset", "c1", { decision: "" }, { ready: true });
@@ -1838,6 +1855,7 @@ it("tracks each draft owner's readiness so a loading owner blocks the submission
         ["b", { ready: false }],
         ["c", { ready: false }],
       ]),
+      ["a", "b", "c"],
     ),
   ).toBe(2);
 });
@@ -1895,15 +1913,15 @@ it("holds the boundary while a loading owner's defaults would silently drop its 
   } as unknown as RequestView;
   expect(completionHold(data, priority, draftFor as never)).toEqual([]);
   /* Every counter reads clean, so only the readiness gate blocks. */
-  expect(pendingDrafts(store.registry)).toBe(1);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(1);
   store.register("priority", "reach", empty, { ready: true });
-  expect(pendingDrafts(store.registry)).toBe(0);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(0);
 });
 
 it("prunes retired owners and names failed loads at the boundary", () => {
   const store = createDraftStore();
   store.register("risk", "old-finding", { decision: "" }, { ready: false });
-  expect(pendingDrafts(store.registry)).toBe(1);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(1);
   /* A refreshed assessment replaced the finding; the retired owner must
    * not hold the boundary forever. */
   const data = {
@@ -1919,7 +1937,7 @@ it("prunes retired owners and names failed loads at the boundary", () => {
   const registered = store.version();
   store.retain(keys);
   expect(store.version()).toBeGreaterThan(registered);
-  expect(pendingDrafts(store.registry)).toBe(0);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(0);
   /* A failed owner counts as pending and as failed until it reloads. */
   store.register(
     "asset",
@@ -1927,8 +1945,8 @@ it("prunes retired owners and names failed loads at the boundary", () => {
     { decision: "" },
     { ready: false, failed: true },
   );
-  expect(pendingDrafts(store.registry)).toBe(1);
-  expect(failedDrafts(store.registry)).toBe(1);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(1);
+  expect(failedDrafts(store.registry, store.registry.keys())).toBe(1);
   const failedAt = store.version();
   store.register(
     "asset",
@@ -1937,7 +1955,7 @@ it("prunes retired owners and names failed loads at the boundary", () => {
     { ready: true, failed: false },
   );
   expect(store.version()).toBeGreaterThan(failedAt);
-  expect(failedDrafts(store.registry)).toBe(0);
+  expect(failedDrafts(store.registry, store.registry.keys())).toBe(0);
   /* Retaining the current set leaves current owners untouched. */
   const settled = store.version();
   store.retain(keys);
@@ -1963,7 +1981,7 @@ it("retires empty-outcome and completed-review owners without losing active prio
   store.register("outcome", "risk", {}, { ready: false });
   store.register("priority", "reach", pendingEstimate, { ready: true });
   store.retain(currentDraftKeys(empty, priority));
-  expect(pendingDrafts(store.registry)).toBe(2);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(2);
 
   const populated = {
     ...empty,
@@ -1978,7 +1996,7 @@ it("retires empty-outcome and completed-review owners without losing active prio
     "priority:reach",
     "risk:f1",
   ]);
-  expect(pendingDrafts(store.registry)).toBe(0);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(0);
 
   store.register("risk", "f1", {}, { ready: false });
   const completed: RequestView = {
@@ -1988,7 +2006,7 @@ it("retires empty-outcome and completed-review owners without losing active prio
   store.retain(currentDraftKeys(completed, priority));
   expect([...store.registry.keys()]).toEqual(["priority:reach"]);
   expect(store.registry.get("priority:reach")?.values).toEqual(pendingEstimate);
-  expect(pendingDrafts(store.registry)).toBe(0);
+  expect(pendingDrafts(store.registry, store.registry.keys())).toBe(0);
   expect(
     currentDraftKeys(completed, { ...priority, complete: true }).size,
   ).toBe(0);
