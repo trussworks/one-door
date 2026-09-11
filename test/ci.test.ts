@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
+import { parse } from "yaml";
 import { ESLint } from "eslint";
 import { resolveTool } from "../scripts/deploy/aws.ts";
 
@@ -323,6 +324,50 @@ it("requires the database password from the environment and matches its healthch
   expect(compose).toContain("pg_isready -U ${POSTGRES_USER:-one_door}");
 });
 
+type ParsedWorkflow = {
+  on?: Record<string, unknown>;
+  jobs?: Record<string, { needs?: string | string[] }>;
+};
+
+function workflowTriggers(workflow: ParsedWorkflow): string[] {
+  return Object.keys(workflow.on ?? {}).sort();
+}
+
+/** Dependencies are an unordered set: scalar, list, and reordered spellings
+ * of the same jobs must compare equal. */
+function normalizedNeeds(value: string | string[] | undefined): string[] {
+  if (value === undefined) return [];
+  return (typeof value === "string" ? [value] : value.map(String)).sort();
+}
+
+it("judges triggers and dependencies by parsed meaning, not spelling", () => {
+  const allowed = ["workflow_call", "workflow_dispatch"];
+  for (const form of [
+    "on:\n  workflow_dispatch:\n  workflow_call:\n",
+    "on: { workflow_dispatch: {}, workflow_call: {} }\n",
+    '"on":\n  workflow_dispatch:\n  workflow_call:\n',
+  ])
+    expect(workflowTriggers(parse(form) as ParsedWorkflow)).toEqual(allowed);
+  // Both allowed keys stay present, so rejection can only come from the
+  // forbidden extra trigger.
+  for (const forbidden of [
+    "push",
+    "pull_request",
+    "pull_request_target",
+    "schedule",
+  ]) {
+    const smuggled = parse(
+      `on: { workflow_dispatch: {}, workflow_call: {}, ${forbidden}: {} }\n`,
+    ) as ParsedWorkflow;
+    expect(workflowTriggers(smuggled)).not.toEqual(allowed);
+  }
+  expect(normalizedNeeds("checks")).toEqual(["checks"]);
+  expect(normalizedNeeds(["checks"])).toEqual(["checks"]);
+  expect(normalizedNeeds(["checks", "publish"])).toEqual(["checks", "publish"]);
+  expect(normalizedNeeds(["publish", "checks"])).toEqual(["checks", "publish"]);
+  expect(normalizedNeeds(undefined)).toEqual([]);
+});
+
 it("runs checks manually without publishing or through a manually dispatched release", () => {
   const release = readFileSync(
     new URL("../.github/workflows/release.yml", import.meta.url),
@@ -333,26 +378,24 @@ it("runs checks manually without publishing or through a manually dispatched rel
   expect(release).toContain(
     "SOURCE_URL=${{ github.server_url }}/${{ github.repository }}",
   );
-  expect(release).toContain("workflow_dispatch:");
-  expect(harness).toContain("workflow_call:");
-  for (const workflow of [release, harness])
-    expect(
-      workflow
-        .split("jobs:")[0]
-        .split("\n")
-        .some((line) =>
-          /^(push|pull_request|pull_request_target|schedule):/.test(
-            line.trim(),
-          ),
-        ),
-    ).toBe(false);
-  expect(harness.split("jobs:")[0]).toContain("workflow_dispatch:");
+  // Parsed keys, not line searches: a flow-style or quoted trigger map must
+  // receive the same judgment as the block form.
+  const releaseDoc = parse(release) as ParsedWorkflow;
+  const harnessDoc = parse(harness) as ParsedWorkflow;
+  expect(workflowTriggers(releaseDoc)).toEqual(["workflow_dispatch"]);
+  expect(workflowTriggers(harnessDoc)).toEqual([
+    "workflow_call",
+    "workflow_dispatch",
+  ]);
   expect(harness).not.toContain("id-token: write");
   expect(harness).not.toContain("configure-aws-credentials");
   // Publishing and deploying wait for the checks, and both stay pinned to the
-  // branch the release role trusts.
-  expect(release).toMatch(/publish:\n\s+needs: checks/);
-  expect(release).toMatch(/deploy:\n\s+needs: \[checks, publish\]/);
+  // branch the release role trusts. Scalar and list needs are equivalent.
+  expect(normalizedNeeds(releaseDoc.jobs?.publish.needs)).toEqual(["checks"]);
+  expect(normalizedNeeds(releaseDoc.jobs?.deploy.needs)).toEqual([
+    "checks",
+    "publish",
+  ]);
   expect(release).toContain("assert.equal(claims.ref, 'refs/heads/main')");
   const bootstrap = readFileSync(
     new URL("../infra/bootstrap/main.tf", import.meta.url),
