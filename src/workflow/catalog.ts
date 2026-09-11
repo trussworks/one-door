@@ -377,8 +377,11 @@ const addSchema = z.object({
 
 type AddInput = z.infer<typeof addSchema>;
 
-/** The values the insert will store, defaults applied. */
-function storedItemValues(data: AddInput): Record<string, unknown> {
+/** The values the insert will store, defaults applied. The table's own
+ * field types keep the evidence rows and the insert describing one object. */
+function storedItemValues(
+  data: AddInput,
+): Pick<typeof catalogItems.$inferSelect, ItemFieldName> {
   return {
     name: data.name,
     vendor: data.vendor ?? null,
@@ -438,19 +441,8 @@ export async function addCatalogItem(ctx: ActorContext, input: unknown) {
           id: itemId,
           itemKey: data.itemKey,
           publicationState: "draft",
-          approvalStatus: "review_required",
-          itemType: data.itemType,
           currentVersion: 1,
-          name: data.name,
-          vendor: data.vendor ?? null,
-          description: data.description,
-          capabilities: data.capabilities,
-          ownerOrganizationId: data.ownerOrganizationId,
-          licenseModel: data.licenseModel ?? null,
-          dataClassifications: data.dataClassifications,
-          integrations: data.integrations,
-          reviewDate: data.reviewDate,
-          renewalDate: data.renewalDate ?? null,
+          ...stored,
         });
         await writeFieldDecisions(tx, {
           ctx,

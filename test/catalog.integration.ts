@@ -218,6 +218,42 @@ try {
     reviewDate: "2026-09-01",
     provenance: authoredProvenance(),
   });
+  // The recorded field decisions and the persisted row must describe one
+  // object, for supplied fields and applied defaults alike.
+  const [addedRow] = await sql.unsafe<Record<string, unknown>[]>(
+    `SELECT name, description, item_type, owner_organization_id,
+            capabilities, data_classifications, approval_status, vendor
+     FROM catalog_items WHERE id = '${added.catalogItemId}'`,
+  );
+  const addedDecisions = await sql.unsafe<
+    { field_name: string; value: string }[]
+  >(
+    `SELECT field_name, value::text AS value FROM catalog_field_decisions
+     WHERE catalog_item_id = '${added.catalogItemId}'`,
+  );
+  const persisted: Record<string, unknown> = {
+    name: addedRow.name,
+    description: addedRow.description,
+    itemType: addedRow.item_type,
+    ownerOrganizationId: addedRow.owner_organization_id,
+    capabilities: addedRow.capabilities,
+    dataClassifications: addedRow.data_classifications,
+  };
+  assert.equal(addedDecisions.length, 6, "one decision per provenance entry");
+  for (const decision of addedDecisions)
+    assert.deepEqual(
+      JSON.parse(decision.value),
+      persisted[decision.field_name],
+      `decision value matches the persisted ${decision.field_name}`,
+    );
+  assert.deepEqual(addedRow.capabilities, [], "list default persisted");
+  assert.equal(addedRow.vendor, null, "absent vendor stored as null");
+  assert.equal(
+    addedRow.approval_status,
+    "review_required",
+    "status default persisted",
+  );
+
   await expectCode(
     "VALIDATION_FAILED",
     () =>
