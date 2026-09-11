@@ -9,11 +9,7 @@ import { ModelWaiting } from "../src/ui/fields";
 import { RequestSummary } from "../src/ui/request-summary";
 import { api, prepareModel } from "../src/ui/api";
 import { queueOptions, pageNumber } from "../src/server/query-options";
-import {
-  workPlan,
-  deliveryPlanValues,
-  remainingReviewSections,
-} from "../src/ui/review-delivery";
+import { workPlan, deliveryPlanValues } from "../src/ui/review-delivery";
 import { recordNavigation } from "../src/ui/request-record";
 import { requestPhaseLabel } from "../src/ui/status-labels";
 import { sameEditableValues } from "../src/ui/use-saved-work";
@@ -23,10 +19,7 @@ import { reportMetrics } from "../src/server/reports";
 import type { ReportMetrics } from "../src/server/reports";
 import { MetricRecords } from "../src/ui/reports";
 import { comparisonValue } from "../src/ui/conflict";
-import {
-  assetOutcomeReady,
-  preparationNeeded,
-} from "../src/ui/review-decisions";
+import { preparationNeeded } from "../src/ui/review-decisions";
 import { queueRiskLabel, queueReviewer } from "../src/ui/review-queue";
 import {
   simulatedClosure,
@@ -463,15 +456,6 @@ it("queues current inputs instead of retrying an obsolete model job", async () =
   expect(fetcher.mock.calls[1][0]).toBe("/api/models/current");
 });
 
-it("requires actual match decisions before offering an aggregate no-match outcome", () => {
-  expect(assetOutcomeReady([])).toBe(true);
-  expect(assetOutcomeReady([{ decision: null }])).toBe(false);
-  expect(assetOutcomeReady([{ decision: "rejected" }])).toBe(true);
-  expect(
-    assetOutcomeReady([{ decision: "accepted" }, { decision: null }]),
-  ).toBe(true);
-});
-
 it("shows the source ownership label separately from its normalized team mapping", () => {
   expect(
     comparisonValue(
@@ -578,20 +562,6 @@ it("restores structured delivery values for old WIP without replacing explicit e
   expect(
     deliveryPlanValues({ deliveryOwnerActorId: "", nextTask: "" }, data),
   ).toEqual({ deliveryOwnerActorId: "", nextTask: "" });
-});
-
-it("guides reviewers to each unfinished section once without treating owner fields as navigation", () => {
-  expect(
-    remainingReviewSections([
-      "ASSET_ASSESSMENT_MISSING",
-      "ASSET_OUTCOME_PENDING",
-      "RISK_FINDINGS_UNDECIDED",
-      "RISK_FOLLOW_UP_OPEN",
-      "RICE_MISSING",
-      "NEXT_OWNER_MISSING",
-    ]),
-  ).toEqual(["fit", "risk", "priority"]);
-  expect(remainingReviewSections(["OPEN_CLARIFICATION"])).toEqual(["need"]);
 });
 
 it("reopens the gate when an API session expires instead of hiding a failed save", async () => {

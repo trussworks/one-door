@@ -7,7 +7,6 @@ import type { RecordProps } from "./record-form";
 import type { RequestView } from "../server/request-views";
 import { Field, Problem } from "./fields";
 import { FormMessages } from "./saved-work-presentation";
-import { TaskRating, RatingErrorSummary } from "./rating-presentation";
 import { useRecordForm } from "./record-form";
 import { sortRows } from "../domain/sorting";
 import { SortableHeader, useSort } from "./sort";
@@ -20,128 +19,6 @@ import {
 import { api, errorText } from "./api";
 import { useData } from "./use-data";
 import type { workItemOptions } from "../server/work-item";
-import type { ApprovalBlocker } from "../workflow/review";
-
-/** Anchors within the assessment view; every prerequisite is on one page. */
-type BriefAnchor = "need" | "fit" | "risk" | "priority";
-const blockerAnchors: Record<ApprovalBlocker, BriefAnchor | null> = {
-  OPEN_CLARIFICATION: "need",
-  ASSET_CORPUS_STALE: "fit",
-  ASSET_ASSESSMENT_MISSING: "fit",
-  ASSET_ASSESSMENT_FAILED: "fit",
-  ASSET_OUTCOME_PENDING: "fit",
-  CATALOG_INELIGIBLE: "fit",
-  RISK_CORPUS_STALE: "risk",
-  RISK_ASSESSMENT_MISSING: "risk",
-  RISK_ASSESSMENT_FAILED: "risk",
-  RISK_FINDINGS_UNDECIDED: "risk",
-  RISK_FOLLOW_UP_OPEN: "risk",
-  RISK_OUTCOME_PENDING: "risk",
-  RISK_RULE_RETIRED: "risk",
-  RICE_MISSING: "priority",
-  NEXT_OWNER_MISSING: null,
-};
-
-export function remainingReviewSections(blockers: ApprovalBlocker[]) {
-  return [
-    ...new Set(blockers.map((blocker) => blockerAnchors[blocker])),
-  ].filter((anchor) => anchor !== null);
-}
-
-export function ReviewPrerequisites({
-  blockers,
-}: {
-  blockers: ApprovalBlocker[];
-}) {
-  const labels: Record<BriefAnchor, string> = {
-    need: "Wait for request clarification",
-    fit: "Review existing options",
-    risk: "Review policy findings",
-    priority: "Review priority estimates",
-  };
-  return (
-    <div className="prerequisites">
-      <h3>Needed to complete review:</h3>
-      <ul>
-        {remainingReviewSections(blockers).map((anchor) => (
-          <li key={anchor}>
-            <a href={"#" + anchor}>{labels[anchor]}</a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export function ReviewHandoff({ data, changed }: RecordProps) {
-  const [ratingAttempted, setRatingAttempted] = useState(false);
-  const form = useRecordForm({
-    data,
-    changed,
-    pageKey: "complete-review",
-    initial: {
-      nextOwner: data.review.nextOwner ?? "",
-      deliveryOwnerActorId: data.review.deliveryOwnerActorId ?? "",
-      nextTask: data.review.nextTask ?? "",
-      system: "servicenow",
-      requiredWork: "",
-      supportingWork: "",
-      rating: "",
-      completionKey: "",
-    },
-  });
-  const blockers = data.review.blockers.filter(
-    (blocker) => blocker !== "NEXT_OWNER_MISSING",
-  );
-  async function complete(event: React.FormEvent) {
-    event.preventDefault();
-    const key = form.work.values.completionKey || crypto.randomUUID();
-    form.work.change("completionKey", key);
-    await form.action(
-      "completeFirstReview",
-      {
-        rating: Number(form.work.values.rating),
-        idempotencyKey: key,
-        ...deliveryPlanValues(form.work.values, data),
-        targetSystem: form.work.values.system,
-        workPlan: workPlan(form.work.values),
-      },
-      "First review completed. The delivery handoff is next.",
-    );
-  }
-  return (
-    <section id="next-owner">
-      <h2>Complete first review</h2>
-      <RatingErrorSummary
-        invalid={ratingAttempted && !form.work.values.rating}
-      />
-      <p>
-        Choose who will lead delivery and what they should do next. Complete
-        review once the solution, risk, and priority decisions are recorded.
-        This records the delivery plan; it does not mean the work is finished.
-      </p>
-      {blockers.length > 0 && <ReviewPrerequisites blockers={blockers} />}
-      <form onSubmit={(event) => void complete(event)}>
-        <fieldset
-          className="usa-fieldset"
-          disabled={!form.work.ready || form.pending}
-        >
-          <HandoffFields form={form} data={data} />
-          <TaskRating
-            value={form.work.values.rating}
-            onChange={(value) => form.work.change("rating", value)}
-            invalid={ratingAttempted && !form.work.values.rating}
-            onMissing={() => setRatingAttempted(true)}
-          />
-          <FormMessages form={form} />
-          <Button type="submit" disabled={blockers.length > 0 || form.stale}>
-            Complete first review
-          </Button>
-        </fieldset>
-      </form>
-    </section>
-  );
-}
 
 export function workPlan(values: Record<string, string>) {
   return (
