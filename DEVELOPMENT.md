@@ -19,7 +19,7 @@ The maintained command list is in [package.json](package.json), and [Harness CI]
 
 `npm run prepare` points `core.hooksPath` at [.githooks](.githooks), so `.git/hooks` is never consulted. Three hooks there run the credential scanner: `pre-commit` scans the staged index, `commit-msg` scans the message that would be committed, and `pre-push` scans the range being pushed. A finding blocks the operation and prints the rule name, never the value.
 
-`prepare-commit-msg`, `post-commit` and `post-rewrite` exist only so every hook name git may call resolves. Each one exits zero and does nothing. The agent session-recording callbacks that used to live in those three scripts, in `.codex/hooks.json` and in `.claude/settings.json`, have been removed, and the tracked `.entire/settings.json` records the recorder as disabled. Its redaction rules stay in place, because they protect a recording made some other way. [test/recording-hooks.test.ts](test/recording-hooks.test.ts) puts a stub recorder on `PATH`, commits and amends, and requires that nothing calls it while both credential gates still block.
+`prepare-commit-msg`, `post-commit`, and `post-rewrite` are absent; Git skips them in the configured hooks directory. Recording callbacks are also absent from `.codex/hooks.json` and `.claude/settings.json`, and `.entire/settings.json` keeps recording disabled while retaining its redaction rules. [test/recording-hooks.test.ts](test/recording-hooks.test.ts) commits and amends with a stub recorder on `PATH` and legacy recorder hooks in `.git/hooks`; the recorder is never called, while the credential gates continue to block unsafe commits.
 
 ## Reading the database code
 

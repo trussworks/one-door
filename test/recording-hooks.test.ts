@@ -23,16 +23,6 @@ const hooksDir = join(repoRoot, ".githooks");
 const scanner = join(repoRoot, "scripts/scan-secrets.ts");
 const workspaces: string[] = [];
 
-/** Every hook name git may call through core.hooksPath. */
-const HOOK_NAMES = [
-  "pre-commit",
-  "prepare-commit-msg",
-  "commit-msg",
-  "post-commit",
-  "post-rewrite",
-  "pre-push",
-];
-
 /** The agent configurations that once carried recording callbacks. */
 const AGENT_CONFIGS = [".codex/hooks.json", ".claude/settings.json"];
 
@@ -66,7 +56,14 @@ function sandbox(install: string[] = readdirSync(hooksDir)): {
     chmodSync(target, 0o755);
   }
   execFileSync(GIT, ["config", "core.hooksPath", ".githooks"], { cwd: dir });
+  // Legacy recorder hooks in .git/hooks: with core.hooksPath configured, git
+  // must never fall back to them, even for names absent from .githooks.
   const log = join(dir, "entire-calls.log");
+  for (const name of ["prepare-commit-msg", "post-commit", "post-rewrite"]) {
+    const legacy = join(dir, ".git", "hooks", name);
+    writeFileSync(legacy, `#!/bin/sh\nentire legacy-${name} "$@"\nexit 0\n`);
+    chmodSync(legacy, 0o755);
+  }
   mkdirSync(join(dir, "bin"));
   writeFileSync(
     join(dir, "bin", "entire"),
@@ -113,12 +110,7 @@ afterAll(() => {
 });
 
 describe("no hook records a session", () => {
-  it("keeps a script for every hook name git may call", () => {
-    const present = readdirSync(hooksDir);
-    for (const name of HOOK_NAMES) expect(present).toContain(name);
-  });
-
-  it("calls nothing when a recorder is installed and on PATH", () => {
+  it("calls no recorder on commit or amend, and never falls back to .git/hooks", () => {
     const { dir, calls } = sandbox();
     commit(dir, "first");
     git(dir, ["commit", "-q", "--amend", "-m", "first amended"]);
