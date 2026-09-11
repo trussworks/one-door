@@ -81,6 +81,8 @@ An existing production server serves its built output; changing the checkout doe
 
 Every `test:*` command other than browser/accessibility/container tests uses the caller's `DATABASE_URL`. These commands migrate, seed, and in several cases commit test records or restore fixture state. Use disposable, isolated databases—not the running application's database.
 
+An inherited environment variable takes precedence over Node's `--env-file` and `--env-file-if-exists` flags; changing directories or selecting a test environment file does not change an already-exported `DATABASE_URL`. Before migration, seeding, or fixture preparation, verify the effective hostname, port, and database name without printing the connection string. For scripted validation, start with the allowlisted environment from [test/environment.ts](test/environment.ts), then explicitly set the checked test connection and required test credentials in the child process environment.
+
 The CI `database` job runs database integrity, fixture operations, workflow, review, and HTTP-handler tests in that order. The other workflow suites use separate fresh databases. Follow that isolation locally. The model suite deliberately consumes its test quota; a reused database can fail its preconditions. Never change receipts or timestamps to get around that failure.
 
 Tests use controlled provider doubles; ordinary CI makes no billable model calls. A live-model evaluation is separate and retains its successful and failed call receipts. Native [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) enforce the wire shape; the original Zod schemas still enforce field bounds, allowed references, and risk-finding consistency afterward.
