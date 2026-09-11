@@ -48,10 +48,6 @@ export async function queueView(optionsInput: unknown = {}) {
   };
 }
 
-export function requestQueue(): Promise<EnrichedRequestRow[]> {
-  return enrichedRequests();
-}
-
 const queueOptionsSchema = z.object({
   phase: z.enum(requestPhaseTokens).optional(),
   actionNeeded: z.enum(actionNeededTokens).optional(),
@@ -263,4 +259,4 @@ function mixedReachBasis(rows: EnrichedRequestRow[]): boolean {
 
 export type QueueView = Awaited<ReturnType<typeof queueView>>;
 
-export type QueueRow = Awaited<ReturnType<typeof requestQueue>>[number];
+export type QueueRow = EnrichedRequestRow;

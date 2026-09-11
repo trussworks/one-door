@@ -815,12 +815,7 @@ function decodeSnapshot(previous: string): object | undefined {
   }
 }
 
-export function refinementChanges(previous: string, current: Content) {
-  const parsed = decodeSnapshot(previous);
-  return parsed ? changedContent(parsed as Content, current) : [];
-}
-
-function previousContent(previous: string): Content | undefined {
+export function previousContent(previous: string): Content | undefined {
   const parsed = decodeSnapshot(previous);
   return parsed ? completeContent(parsed, "") : undefined;
 }

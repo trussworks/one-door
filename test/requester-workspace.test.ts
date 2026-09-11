@@ -15,7 +15,8 @@ import {
   submissionInput,
   workspaceState,
   workspaceHeading,
-  refinementChanges,
+  changedContent,
+  previousContent,
   primaryActionLabel,
   visibleSaveWork,
   IntakeQuestions,
@@ -265,12 +266,8 @@ it("allows one refinement and hides suggestions when words or answers change", (
 it("marks changed fields only, including a resolved unknown", () => {
   const before = completeContent({ unknowns: ["Audience"] }, "Need");
   const after = { ...before, affectedPeople: "Field teams", unknowns: [] };
-  expect(refinementChanges(JSON.stringify(before), after)).toEqual([
-    "affectedPeople",
-    "unknowns",
-  ]);
-  expect(refinementChanges("not-json", after)).toEqual([]);
-  expect(refinementChanges(JSON.stringify(after), after)).toEqual([]);
+  expect(changedContent(before, after)).toEqual(["affectedPeople", "unknowns"]);
+  expect(changedContent(after, after)).toEqual([]);
 });
 
 it("sends only unanswered questions, so prior answers do not fill the next round's limit", () => {
@@ -484,13 +481,13 @@ it("ignores concurrency and navigation keys when comparing edits", () => {
   expect(sameEditableValues(base, { ...base, problem: "changed" })).toBe(false);
 });
 
-it("returns no refinement changes when the snapshot cannot be decoded", () => {
+it("uses no previous content when the saved snapshot cannot be decoded", () => {
   const current = completeContent({ problem: "now" }, "");
-  expect(refinementChanges("not json", current)).toEqual([]);
-  expect(refinementChanges("null", current)).toEqual([]);
+  expect(previousContent("not json")).toBeUndefined();
+  expect(previousContent("null")).toBeUndefined();
   // A decodable snapshot is compared even when it holds no fields, which is
   // how an empty older draft reports every field as newly filled in.
-  expect(refinementChanges("{}", current)).toContain("problem");
+  expect(changedContent(previousContent("{}")!, current)).toContain("problem");
 });
 
 it("keeps the requester wording distinct from the reviewer history wording", () => {

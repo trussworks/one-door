@@ -1,7 +1,5 @@
 "use client";
 
-import type { RequestView } from "../server/request-views";
-
 export const reviewSections = {
   assessment: "Assessment",
   delivery: "Delivery",
@@ -24,34 +22,5 @@ export function selectedReviewSection(value: string | null): ReviewSection {
     return value as ReviewSection;
   if (value && Object.hasOwn(legacySections, value))
     return legacySections[value];
-  return "assessment";
-}
-
-export function reviewSectionHref(
-  path: string,
-  query: string,
-  section: ReviewSection,
-) {
-  const next = new URLSearchParams(query);
-  next.set("section", section);
-  next.delete("panel");
-  return path + "?" + next;
-}
-
-export function nextReviewSection(data: RequestView): ReviewSection {
-  const action = data.status?.actionNeeded;
-  const destinations: Record<string, ReviewSection> = {
-    review_assets: "assessment",
-    review_risk: "assessment",
-    score_rice: "assessment",
-    complete_first_review: "assessment",
-    wait_for_requester: "assessment",
-    retry_handoff: "delivery",
-    execute_handoff: "delivery",
-    monitor_delivery: "delivery",
-    record_outcome: "delivery",
-    none: "delivery",
-  };
-  if (action && destinations[action]) return destinations[action];
   return "assessment";
 }

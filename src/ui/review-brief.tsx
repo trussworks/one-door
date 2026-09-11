@@ -1313,16 +1313,6 @@ function SeverityPicker({
   );
 }
 
-/** Priority renders from the score state, never from the request phase, so
- * an unscored request keeps its priority work visible after first review. */
-export function priorityState(priority: PriorityView | null): {
-  label: string;
-  tone: ClaimTone;
-} {
-  if (priority?.complete) return { label: "Reviewed", tone: "confirmed" };
-  return { label: "Not scored", tone: "proposed" };
-}
-
 function PriorityPanel({
   data,
   changed,

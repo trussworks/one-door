@@ -32,11 +32,7 @@ import {
   isSimulatedWork,
   workClosed,
 } from "../src/ui/status-labels";
-import {
-  selectedReviewSection,
-  reviewSectionHref,
-  nextReviewSection,
-} from "../src/ui/review-navigation";
+import { selectedReviewSection } from "../src/ui/review-navigation";
 import { catalogMatchesState } from "../src/ui/catalog";
 import {
   fitClaimStatus,
@@ -48,7 +44,6 @@ import {
   assembleReviewSubmission,
   resolveAssetOutcome,
   resolveRiskOutcome,
-  priorityState,
   candidateProvenance,
   reviewClosureState,
   claimQuestionState,
@@ -150,44 +145,13 @@ it("reports only the directions with hidden table columns", () => {
   expect(tableOverflow(0.5, 100, 100.5)).toEqual({ left: false, right: false });
 });
 
-it("keeps review links working while legacy section values land on the assessment", () => {
+it("keeps legacy section values mapped to the current assessment", () => {
   expect(selectedReviewSection("history")).toBe("history");
-  expect(selectedReviewSection("risk")).toBe("assessment");
-  expect(selectedReviewSection("matches")).toBe("assessment");
-  expect(selectedReviewSection("finish")).toBe("assessment");
+  expect(selectedReviewSection("delivery")).toBe("delivery");
+  for (const section of ["request", "matches", "risk", "priority", "finish"])
+    expect(selectedReviewSection(section)).toBe("assessment");
   expect(selectedReviewSection("constructor")).toBe("assessment");
   expect(selectedReviewSection(null)).toBe("assessment");
-  const url = new URL(
-    reviewSectionHref(
-      "/review/id",
-      "from=reviewer%3Dme%26page%3D2&panel=rice",
-      "delivery",
-    ),
-    "http://localhost",
-  );
-  expect(url.searchParams.get("from")).toBe("reviewer=me&page=2");
-  expect(url.searchParams.get("section")).toBe("delivery");
-  expect(url.searchParams.has("panel")).toBe(false);
-  for (const [action, section] of [
-    ["review_risk", "assessment"],
-    ["score_rice", "assessment"],
-    ["execute_handoff", "delivery"],
-    ["wait_for_requester", "assessment"],
-    ["complete_first_review", "assessment"],
-  ]) {
-    expect(
-      nextReviewSection({
-        status: { actionNeeded: action },
-        review: { blockers: [] },
-      } as unknown as RequestView),
-    ).toBe(section);
-  }
-  expect(
-    nextReviewSection({
-      status: { actionNeeded: "refresh_preparation" },
-      review: { blockers: ["ASSET_CORPUS_STALE"] },
-    } as unknown as RequestView),
-  ).toBe("assessment");
 });
 
 it("finds catalog work without treating resolved conflicts or retired reviews as overdue", () => {
@@ -936,29 +900,6 @@ it("records empty-list outcomes only on the reviewer's explicit affirmation", ()
       silent,
     ),
   ).toBe("accepted");
-});
-
-it("takes priority state from the read model and never from a stale score", () => {
-  expect(priorityState(null)).toEqual({
-    label: "Not scored",
-    tone: "proposed",
-  });
-  expect(
-    priorityState({
-      factors: [],
-      complete: false,
-      scoreId: null,
-      score: null,
-    }),
-  ).toEqual({ label: "Not scored", tone: "proposed" });
-  expect(
-    priorityState({
-      factors: [],
-      complete: true,
-      scoreId: "s1",
-      score: 43,
-    }),
-  ).toEqual({ label: "Reviewed", tone: "confirmed" });
 });
 
 it("finds catalogue entries by name, vendor, or capability and keeps provenance honest", () => {

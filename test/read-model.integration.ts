@@ -42,7 +42,7 @@ import {
   type EnrichedRequestRow,
 } from "../src/server/read-model.ts";
 import { myWork } from "../src/server/my-work.ts";
-import { queueView, requestQueue } from "../src/server/queue.ts";
+import { queueView } from "../src/server/queue.ts";
 import { reportMetrics, reportView } from "../src/server/reports.ts";
 import { requestView } from "../src/server/request-views.ts";
 import { withReadSnapshot } from "../src/workflow/shared.ts";
@@ -1093,10 +1093,6 @@ try {
     "one page holds the whole queue while it fits",
   );
   assert.equal(wholeQueue.pageCount, 1, "no pagination under the page size");
-  const legacy = await requestQueue();
-  const legacyRow = legacy.find((entry) => entry.requestId === r1.requestId);
-  assert.ok(legacyRow, "legacy queue export still lists every request");
-  assert.equal(legacyRow.displayId, row.displayId);
 
   // ── 7. The three role surfaces agree ─────────────────────────────────────
   const own = await myWork(alice);

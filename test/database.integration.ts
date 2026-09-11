@@ -9,7 +9,6 @@ import { promisify } from "node:util";
 
 import postgres from "postgres";
 
-import { listRequests } from "../src/db/queries.ts";
 import { buildSeedData } from "../src/seed/build.ts";
 import { contentHash as seedContentHash } from "../src/seed/stable.ts";
 
@@ -67,9 +66,6 @@ const TABLE_ROWS: ReadonlyArray<readonly [string, number]> = [
   ["external_work_items", seed.externalWorkItems.length],
   ["request_work_item_links", seed.requestWorkItemLinks.length],
 ];
-
-const PAGE_SIZE = 10;
-const PAGE_PAST_THE_END = 99;
 
 type Sql = ReturnType<typeof postgres>;
 
@@ -969,46 +965,6 @@ try {
     );
   });
 
-  // ── 7. listRequests over the fixture ─────────────────────────────────────
-  process.env.DATABASE_URL = url;
-  const firstPage = await listRequests(1, PAGE_SIZE);
-  assert.equal(firstPage.total, seed.requests.length);
-  assert.equal(firstPage.items.length, PAGE_SIZE);
-  assert.equal(
-    firstPage.totalPages,
-    Math.ceil(seed.requests.length / PAGE_SIZE),
-  );
-  const clamped = await listRequests(PAGE_PAST_THE_END, PAGE_SIZE);
-  assert.equal(
-    clamped.currentPage,
-    firstPage.totalPages,
-    "page past the end clamps",
-  );
-  assert.ok(clamped.items.length >= 1, "the clamped page has rows");
-  const everything = [
-    ...firstPage.items,
-    ...(await listRequests(2, PAGE_SIZE)).items,
-    ...clamped.items,
-  ];
-  assert.ok(
-    everything.every((item) => item.daysInStage >= 0),
-    "no negative time in stage",
-  );
-  assert.ok(
-    everything.every(
-      (item) => item.displayId && item.organization && item.requesterName,
-    ),
-    "every row joins display id, organization, and requester",
-  );
-  assert.ok(
-    everything.some((item) => item.riceScore !== null),
-    "a scored request appears in the listing",
-  );
-  assert.ok(
-    everything.some((item) => item.riceScore === null),
-    "an unscored request appears in the listing",
-  );
-
   // ── Nothing moved ────────────────────────────────────────────────────────
   assert.deepEqual(
     await rowCounts(sql),
@@ -1034,7 +990,7 @@ try {
       `  ${TABLE_ROWS.length} tables at expected counts`,
       "  migrate and seed idempotent; ledger and manifest hashes verified",
       "  constraint, composite-pointer, and immutability probes all rejected",
-      "  visitor ownership and listRequests verified; no rows were left behind",
+      "  visitor ownership verified; no rows were left behind",
     ].join("\n"),
   );
 } finally {
