@@ -176,6 +176,14 @@ run "truss_serves_its_own_hostname_on_modern_tls" {
     condition     = local.app_origin == "https://one-door.sandbox.truss.coffee" && aws_lambda_function.probe.environment[0].variables.APP_ORIGIN == local.app_origin
     error_message = "The probe must measure the origin the browser uses; a stale origin makes state-changing requests fail with ORIGIN_MISMATCH."
   }
+  assert {
+    condition     = length(aws_lambda_function.visitor_activity) == 1 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 2 && one(aws_cloudwatch_metric_alarm.visitor_activity).alarm_actions == toset([aws_sns_topic.alerts.arn]) && length(one(aws_cloudwatch_metric_alarm.visitor_activity).ok_actions) == 0
+    error_message = "Truss visitor activity needs one bounded processor, both request-log feeds and one private email notice without a recovery email."
+  }
+  assert {
+    condition     = one(aws_lambda_function.visitor_activity).environment[0].variables.APP_HOSTNAME == "one-door.sandbox.truss.coffee" && one(aws_cloudwatch_metric_alarm.visitor_activity).treat_missing_data == "notBreaching"
+    error_message = "Visitor activity must be limited to the approved hostname and become quiet when no request is recorded."
+  }
 }
 run "truss_without_a_certificate_is_refused" {
   command = plan
@@ -217,6 +225,10 @@ run "personal_keeps_its_generated_hostname_and_whole_account_budget" {
   assert {
     condition     = aws_cloudtrail.app.event_selector[0].include_management_events && length(aws_cloudtrail.app.event_selector[0].data_resource) == 1
     error_message = "The personal account has no organization trail behind it, so its own trail keeps management events."
+  }
+  assert {
+    condition     = length(aws_lambda_function.visitor_activity) == 0 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 0 && length(aws_cloudwatch_metric_alarm.visitor_activity) == 0
+    error_message = "The Truss feedback notice must not change the personal rehearsal."
   }
 }
 run "truss_audits_state_objects_without_duplicating_the_organization_trail" {

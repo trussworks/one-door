@@ -17,5 +17,6 @@ playwright-parity-results/
 *.tfplan
 .deployment-private/
 infra/platform/probe.zip
+infra/platform/visitor_activity.zip
 **/__pycache__/
 *.pyc
