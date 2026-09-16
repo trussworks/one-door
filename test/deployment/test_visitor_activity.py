@@ -31,6 +31,8 @@ def waf_message(**headers):
             "httpMethod": "GET",
             "host": "one-door.sandbox.truss.coffee",
             "uri": "/review/08da46a7-a463-5b17-a589-8681f9c579ba",
+            "clientIp": "192.0.2.10",
+            "country": "US",
             "headers": [{"name": name, "value": value} for name, value in headers.items()],
         },
     }
@@ -58,6 +60,7 @@ class VisitorActivityTests(unittest.TestCase):
                 "sec-fetch-mode": "navigate",
                 "sec-fetch-dest": "document",
                 "sec-fetch-user": "?1",
+                "cookie": "redacted",
             }
         )
         self.assertTrue(
@@ -80,9 +83,9 @@ class VisitorActivityTests(unittest.TestCase):
             )
         )
 
-    def test_successful_application_writes_are_activity(self):
+    def test_successful_demo_entry_is_activity(self):
         self.assertTrue(
-            visitor_activity.successful_action(
+            visitor_activity.successful_entry(
                 {
                     "cs-method": "POST",
                     "cs-uri-stem": "/api/session",
@@ -91,7 +94,7 @@ class VisitorActivityTests(unittest.TestCase):
             )
         )
         self.assertFalse(
-            visitor_activity.successful_action(
+            visitor_activity.successful_entry(
                 {
                     "cs-method": "POST",
                     "cs-uri-stem": "/api/session",
@@ -100,18 +103,28 @@ class VisitorActivityTests(unittest.TestCase):
             )
         )
 
-    def test_handler_publishes_only_a_count(self):
-        calls = []
+    def test_handler_emails_details_but_logs_only_a_count(self):
+        metric_calls = []
+        messages = []
         cloudwatch = SimpleNamespace(
-            put_metric_data=lambda **arguments: calls.append(arguments)
+            put_metric_data=lambda **arguments: metric_calls.append(arguments)
         )
-        sdk = SimpleNamespace(client=lambda *args, **kwargs: cloudwatch)
+        sns = SimpleNamespace(
+            publish=lambda **arguments: messages.append(arguments)
+            or {"MessageId": "confirmed"}
+        )
+        sdk = SimpleNamespace(
+            client=lambda service, **kwargs: cloudwatch
+            if service == "cloudwatch"
+            else sns
+        )
         navigation = waf_message(
             **{
                 "user-agent": "Mozilla/5.0 Chrome/140.0",
                 "sec-fetch-mode": "navigate",
                 "sec-fetch-dest": "document",
                 "sec-fetch-user": "?1",
+                "cookie": "redacted",
             }
         )
         environment = {
@@ -120,6 +133,7 @@ class VisitorActivityTests(unittest.TestCase):
             "WAF_LOG_GROUP": "waf",
             "CLOUDFRONT_LOG_GROUP": "cloudfront",
             "METRIC_REGION": "us-west-2",
+            "VISITOR_TOPIC_ARN": "arn:aws:sns:us-west-2:004351505091:visits",
         }
         output = io.StringIO()
         with (
@@ -129,9 +143,28 @@ class VisitorActivityTests(unittest.TestCase):
         ):
             result = visitor_activity.handler(event("waf", navigation), None)
         self.assertEqual(result, {"activityRequests": 1})
-        self.assertEqual(calls[0]["MetricData"][0]["Value"], 1)
+        self.assertEqual(metric_calls[0]["MetricData"][0]["Value"], 1)
+        self.assertIn("Address:", messages[0]["Message"])
+        self.assertIn("Country:", messages[0]["Message"])
         self.assertEqual(json.loads(output.getvalue()), {"activityRequests": 1})
         self.assertNotIn("httpRequest", output.getvalue())
+        self.assertNotIn("Address", output.getvalue())
+
+    def test_anonymous_homepage_probe_is_not_a_visit(self):
+        navigation = waf_message(
+            **{
+                "user-agent": "Mozilla/5.0 Chrome/150.0.0.0",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-dest": "document",
+                "sec-fetch-user": "?1",
+            }
+        )
+        navigation["httpRequest"]["uri"] = "/"
+        self.assertFalse(
+            visitor_activity.browser_navigation(
+                navigation, "one-door.sandbox.truss.coffee"
+            )
+        )
 
 
 if __name__ == "__main__":

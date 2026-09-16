@@ -4,7 +4,7 @@ locals {
     cloudfront = {
       name    = aws_cloudwatch_log_group.cloudfront.name
       arn     = aws_cloudwatch_log_group.cloudfront.arn
-      pattern = "{ ($.cs-method = \"POST\" || $.cs-method = \"PUT\" || $.cs-method = \"PATCH\" || $.cs-method = \"DELETE\") && $.cs-uri-stem = \"/api/*\" && $.sc-status = \"2*\" }"
+      pattern = "{ $.cs-method = \"POST\" && $.cs-uri-stem = \"/api/session\" && $.sc-status = \"2*\" }"
     }
     waf = {
       name    = aws_cloudwatch_log_group.waf.name
@@ -40,13 +40,9 @@ resource "aws_sns_topic_policy" "visitor_activity" {
         Resource  = aws_sns_topic.visitor_activity[0].arn
       },
       {
-        Sid       = "VisitorActivityAlarm", Effect = "Allow"
-        Principal = { Service = "cloudwatch.amazonaws.com" }
+        Sid       = "VisitorActivityProcessor", Effect = "Allow"
+        Principal = { AWS = aws_iam_role.visitor_activity[0].arn }
         Action    = "sns:Publish", Resource = aws_sns_topic.visitor_activity[0].arn
-        Condition = {
-          StringEquals = { "aws:SourceAccount" = var.account_id }
-          ArnEquals    = { "aws:SourceArn" = "arn:aws:cloudwatch:${var.region}:${var.account_id}:alarm:${local.name}-visitor-activity" }
-        }
       }
     ]
   })
@@ -82,7 +78,9 @@ resource "aws_iam_role_policy" "visitor_activity" {
         Condition = {
           StringEquals = { "cloudwatch:namespace" = "OneDoor/Visits", "aws:RequestedRegion" = var.region }
         }
-      }
+      },
+      { Effect = "Allow", Action = "sns:Publish", Resource = aws_sns_topic.visitor_activity[0].arn },
+      { Effect = "Allow", Action = ["kms:Decrypt", "kms:GenerateDataKey*"], Resource = aws_kms_key.alerts.arn }
     ]
   })
 }
@@ -116,6 +114,7 @@ resource "aws_lambda_function" "visitor_activity" {
       WAF_LOG_GROUP        = aws_cloudwatch_log_group.waf.name
       CLOUDFRONT_LOG_GROUP = aws_cloudwatch_log_group.cloudfront.name
       METRIC_REGION        = var.region
+      VISITOR_TOPIC_ARN    = aws_sns_topic.visitor_activity[0].arn
     }
   }
   depends_on = [aws_iam_role_policy.visitor_activity]
@@ -156,6 +155,6 @@ resource "aws_cloudwatch_metric_alarm" "visitor_activity" {
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
   actions_enabled     = var.alarm_actions_enabled
-  alarm_actions       = [aws_sns_topic.visitor_activity[0].arn]
+  alarm_actions       = []
   ok_actions          = []
 }

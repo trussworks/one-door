@@ -182,11 +182,11 @@ run "truss_serves_its_own_hostname_on_modern_tls" {
     error_message = "The probe must measure the origin the browser uses; a stale origin makes state-changing requests fail with ORIGIN_MISMATCH."
   }
   assert {
-    condition     = length(aws_lambda_function.visitor_activity) == 1 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 2 && one(aws_cloudwatch_metric_alarm.visitor_activity).alarm_actions == toset([one(aws_sns_topic.visitor_activity).arn]) && length(one(aws_cloudwatch_metric_alarm.visitor_activity).ok_actions) == 0
+    condition     = length(aws_lambda_function.visitor_activity) == 1 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 2 && length(one(aws_cloudwatch_metric_alarm.visitor_activity).alarm_actions) == 0 && length(one(aws_cloudwatch_metric_alarm.visitor_activity).ok_actions) == 0
     error_message = "Truss visitor activity needs one bounded processor, both request-log feeds and one private email notice without a recovery email."
   }
   assert {
-    condition     = one(aws_lambda_function.visitor_activity).environment[0].variables.APP_HOSTNAME == "one-door.sandbox.truss.coffee" && one(aws_cloudwatch_metric_alarm.visitor_activity).treat_missing_data == "notBreaching" && one(aws_sns_topic_subscription.visitor_activity).endpoint == "maz@teamtrussworks.com"
+    condition     = one(aws_lambda_function.visitor_activity).environment[0].variables.APP_HOSTNAME == "one-door.sandbox.truss.coffee" && one(aws_lambda_function.visitor_activity).environment[0].variables.VISITOR_TOPIC_ARN == one(aws_sns_topic.visitor_activity).arn && one(aws_cloudwatch_metric_alarm.visitor_activity).treat_missing_data == "notBreaching" && one(aws_sns_topic_subscription.visitor_activity).endpoint == "maz@teamtrussworks.com"
     error_message = "Visitor activity must be limited to the approved hostname and become quiet when no request is recorded."
   }
 }
