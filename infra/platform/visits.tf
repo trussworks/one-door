@@ -21,6 +21,44 @@ resource "aws_cloudwatch_log_group" "visitor_activity" {
   retention_in_days = 30
 }
 
+resource "aws_sns_topic" "visitor_activity" {
+  count             = local.visitor_alerts_enabled ? 1 : 0
+  name              = "${local.name}-visitor-activity"
+  kms_master_key_id = aws_kms_key.alerts.arn
+}
+
+resource "aws_sns_topic_policy" "visitor_activity" {
+  count = local.visitor_alerts_enabled ? 1 : 0
+  arn   = aws_sns_topic.visitor_activity[0].arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AccountAdministration", Effect = "Allow"
+        Principal = { AWS = "arn:aws:iam::${var.account_id}:root" }
+        Action    = ["sns:GetTopicAttributes", "sns:SetTopicAttributes", "sns:AddPermission", "sns:RemovePermission", "sns:Publish", "sns:Subscribe", "sns:ListSubscriptionsByTopic"]
+        Resource  = aws_sns_topic.visitor_activity[0].arn
+      },
+      {
+        Sid       = "VisitorActivityAlarm", Effect = "Allow"
+        Principal = { Service = "cloudwatch.amazonaws.com" }
+        Action    = "sns:Publish", Resource = aws_sns_topic.visitor_activity[0].arn
+        Condition = {
+          StringEquals = { "aws:SourceAccount" = var.account_id }
+          ArnEquals    = { "aws:SourceArn" = "arn:aws:cloudwatch:${var.region}:${var.account_id}:alarm:${local.name}-visitor-activity" }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_sns_topic_subscription" "visitor_activity" {
+  count     = local.visitor_alerts_enabled ? 1 : 0
+  topic_arn = aws_sns_topic.visitor_activity[0].arn
+  protocol  = "email"
+  endpoint  = "maz@teamtrussworks.com"
+}
+
 resource "aws_iam_role" "visitor_activity" {
   count = local.visitor_alerts_enabled ? 1 : 0
   name  = "${local.name}-visitor-activity"
@@ -118,6 +156,6 @@ resource "aws_cloudwatch_metric_alarm" "visitor_activity" {
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
   actions_enabled     = var.alarm_actions_enabled
-  alarm_actions       = [aws_sns_topic.alerts.arn]
+  alarm_actions       = [aws_sns_topic.visitor_activity[0].arn]
   ok_actions          = []
 }

@@ -23,6 +23,11 @@ override_resource {
   override_during = plan
   values          = { arn = "arn:aws:sns:us-west-2:845191826742:one-door-personal-alerts" }
 }
+override_resource {
+  target          = aws_sns_topic.visitor_activity[0]
+  override_during = plan
+  values          = { arn = "arn:aws:sns:us-west-2:004351505091:one-door-truss-visitor-activity" }
+}
 mock_provider "aws" {
   mock_data "aws_availability_zones" {
     defaults = { names = ["us-west-2a", "us-west-2b"] }
@@ -177,11 +182,11 @@ run "truss_serves_its_own_hostname_on_modern_tls" {
     error_message = "The probe must measure the origin the browser uses; a stale origin makes state-changing requests fail with ORIGIN_MISMATCH."
   }
   assert {
-    condition     = length(aws_lambda_function.visitor_activity) == 1 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 2 && one(aws_cloudwatch_metric_alarm.visitor_activity).alarm_actions == toset([aws_sns_topic.alerts.arn]) && length(one(aws_cloudwatch_metric_alarm.visitor_activity).ok_actions) == 0
+    condition     = length(aws_lambda_function.visitor_activity) == 1 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 2 && one(aws_cloudwatch_metric_alarm.visitor_activity).alarm_actions == toset([one(aws_sns_topic.visitor_activity).arn]) && length(one(aws_cloudwatch_metric_alarm.visitor_activity).ok_actions) == 0
     error_message = "Truss visitor activity needs one bounded processor, both request-log feeds and one private email notice without a recovery email."
   }
   assert {
-    condition     = one(aws_lambda_function.visitor_activity).environment[0].variables.APP_HOSTNAME == "one-door.sandbox.truss.coffee" && one(aws_cloudwatch_metric_alarm.visitor_activity).treat_missing_data == "notBreaching"
+    condition     = one(aws_lambda_function.visitor_activity).environment[0].variables.APP_HOSTNAME == "one-door.sandbox.truss.coffee" && one(aws_cloudwatch_metric_alarm.visitor_activity).treat_missing_data == "notBreaching" && one(aws_sns_topic_subscription.visitor_activity).endpoint == "maz@teamtrussworks.com"
     error_message = "Visitor activity must be limited to the approved hostname and become quiet when no request is recorded."
   }
 }
@@ -227,7 +232,7 @@ run "personal_keeps_its_generated_hostname_and_whole_account_budget" {
     error_message = "The personal account has no organization trail behind it, so its own trail keeps management events."
   }
   assert {
-    condition     = length(aws_lambda_function.visitor_activity) == 0 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 0 && length(aws_cloudwatch_metric_alarm.visitor_activity) == 0
+    condition     = length(aws_lambda_function.visitor_activity) == 0 && length(aws_cloudwatch_log_subscription_filter.visitor_activity) == 0 && length(aws_cloudwatch_metric_alarm.visitor_activity) == 0 && length(aws_sns_topic.visitor_activity) == 0
     error_message = "The Truss feedback notice must not change the personal rehearsal."
   }
 }
