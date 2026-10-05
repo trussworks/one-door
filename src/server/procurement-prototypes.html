@@ -1,0 +1,4352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#ffffff, #0c1a33);
+  --surface: light-dark(#f5f7fa, #11223f);
+  --raised: light-dark(#ffffff, #152a4b);
+  --text: light-dark(#0f2140, #e6ebf3);
+  --muted: light-dark(#4b5b75, #a8b5c9);
+  --border: light-dark(#d5dce6, #2b3d5c);
+  --strong-border: light-dark(#7a879c, #7088ad);
+  --accent: light-dark(#1d5bb8, #8db6ff);
+  --accent-soft: light-dark(#e6effb, #1c355e);
+  --decision: light-dark(#6b3fa0, #c9adf5);
+  --information: light-dark(#0b6e75, #6fd6dc);
+  --communication: light-dark(#a14d00, #ffb36b);
+  font: 400 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* ---- page ---- */
+
+.masthead,
+.layout {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+.masthead {
+  padding-block: 28px 4px;
+}
+
+.masthead h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+
+.lede {
+  max-width: 72ch;
+  margin: 0 0 8px;
+}
+
+.text-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.layout {
+  padding-bottom: 48px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.controls label {
+  font-weight: 600;
+}
+
+.controls select {
+  min-height: 40px;
+  min-width: min(100%, 320px);
+  padding: 6px 10px;
+  border: 1px solid var(--strong-border);
+  border-radius: 6px;
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab[aria-selected='true'] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 332px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.panel__heading {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.purpose {
+  margin: 4px 0 14px;
+  color: var(--muted);
+}
+
+.note {
+  max-width: 78ch;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+/* Positioned so visually hidden text inside a table stays within the
+   scroller instead of widening the page. */
+.scroller {
+  position: relative;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--raised);
+}
+
+/* ---- relationship types and status ---- */
+
+[data-layer='decision'] {
+  --layer: var(--decision);
+}
+
+[data-layer='information'] {
+  --layer: var(--information);
+}
+
+[data-layer='communication'] {
+  --layer: var(--communication);
+}
+
+[data-layer='neutral'] {
+  --layer: var(--muted);
+}
+
+.shape {
+  flex: none;
+  overflow: visible;
+}
+
+.shape > * {
+  fill: var(--fill);
+  stroke: var(--layer);
+  stroke-width: 1.8;
+}
+
+.shape--recorded {
+  --fill: var(--layer);
+}
+
+.shape--interpretation {
+  --fill: var(--raised);
+  stroke-dasharray: 2.6 2;
+}
+
+.shape--proposed {
+  --fill: var(--raised);
+  stroke-dasharray: 0.4 2.8;
+  stroke-linecap: round;
+}
+
+.shape--proposed > * {
+  stroke-width: 2.4;
+}
+
+.link {
+  fill: none;
+  stroke: var(--layer, var(--muted));
+  stroke-width: 2;
+}
+
+.link--interpretation {
+  stroke-dasharray: 7 5;
+}
+
+.link--proposed {
+  stroke-dasharray: 0.5 6;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.arrowhead {
+  fill: var(--muted);
+  fill: context-stroke;
+}
+
+.qualified-badge {
+  fill: var(--text);
+  stroke: var(--raised);
+  stroke-width: 1.2;
+}
+
+.tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--strong-border);
+  border-radius: 12px;
+  background: var(--raised);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.tag--interpretation,
+.tag--gap-despiteRoute,
+.tag--qualifier-roleMapping {
+  border-style: dashed;
+}
+
+.passage .tag + .tag {
+  margin-left: 4px;
+}
+
+.tag--proposed {
+  border-width: 2px;
+  border-style: dotted;
+}
+
+.absence {
+  color: var(--muted);
+}
+
+[aria-current='true']:is(.mark, .role-button, .relation) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* ---- type picker ---- */
+
+.segmented {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+.segmented legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.segmented__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segmented__option {
+  position: relative;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--strong-border);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+}
+
+/* The radio covers its whole option, so a click anywhere on it chooses it. */
+.segmented__option input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* No bold: a wider checked option could wrap the row and move the chart. */
+.segmented__option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.segmented__option:has(input:focus-visible) {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- role orbit ---- */
+
+.zoom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.zoom__label {
+  font-weight: 600;
+}
+
+.zoom__button {
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--strong-border);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+}
+
+.zoom__button[aria-disabled='true'] {
+  border-style: dashed;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.zoom__count {
+  color: var(--muted);
+}
+
+.orbit__halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.orbit__halves p {
+  margin: 0;
+}
+
+.orbit__halves p + p {
+  text-align: right;
+}
+
+/* Kept in the layout when unused, so the frame below never moves. */
+.orbit__halves.is-hidden {
+  visibility: hidden;
+}
+
+/* The frame's size never depends on the drawing, and its scroll bars are
+   always reserved, so app.js can keep the centre role at one place in it. */
+.orbit__frame {
+  height: clamp(420px, min(62vw, 100vh - 64px), 700px);
+  overflow: scroll;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--raised);
+}
+
+.orbit {
+  display: block;
+}
+
+.orbit__divider {
+  stroke: var(--border);
+  stroke-dasharray: 2 6;
+}
+
+.sat__ring {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 3;
+}
+
+.sat.is-selected .sat__ring {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.sat.is-selected .link {
+  stroke-width: 3.5;
+}
+
+.rel--spoke:focus-visible .rel__focus {
+  stroke-width: 7;
+}
+
+.orbit__empty {
+  fill: var(--muted);
+  font-size: 16px;
+}
+
+.svg-label {
+  fill: var(--text);
+  font-size: 16px;
+  paint-order: stroke;
+  stroke: var(--raised);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.svg-label__extra {
+  fill: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.core .svg-label {
+  font-size: 14px;
+}
+
+.core .svg-label__extra {
+  font-size: 13px;
+}
+
+.line__hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12;
+}
+
+.node,
+.rel,
+.core {
+  cursor: pointer;
+}
+
+.node:focus,
+.rel:focus,
+.core:focus {
+  outline: none;
+}
+
+.node__hit,
+.rel__hit {
+  fill: transparent;
+}
+
+.node__focus,
+.rel__focus {
+  fill: none;
+  stroke: transparent;
+}
+
+.node:focus-visible .node__focus,
+.rel:focus-visible .rel__focus {
+  stroke: var(--text);
+  stroke-width: 2.5;
+  stroke-dasharray: 4 3;
+}
+
+.core__disc {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.core[data-proposed] .core__disc {
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.core[aria-current='true'] .core__disc {
+  stroke-width: 3.5;
+}
+
+.core:focus-visible .core__disc {
+  stroke: var(--text);
+  stroke-width: 4;
+  stroke-dasharray: 6 4;
+}
+
+/* Re-centring slides nodes to their new places, then lines and marks fade in. */
+.orbit.is-recentring [data-node] {
+  transition: transform 250ms ease-out;
+}
+
+.orbit.is-recentring .rel,
+.orbit .is-new {
+  animation: orbit-fade 200ms ease-out 150ms both;
+}
+
+@keyframes orbit-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit,
+  .orbit * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---- who-to-whom matrix ---- */
+
+.matrix caption {
+  padding: 12px 14px 4px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.role-button {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mark {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+/* Sticky first columns: keep focused items clear of them when scrolling. */
+.scroller--matrix {
+  scroll-padding-left: 150px;
+}
+
+.matrix {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+.matrix th,
+.matrix td {
+  height: 44px;
+  padding: 4px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.matrix td {
+  min-width: 56px;
+}
+
+.matrix thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  min-width: 58px;
+  max-width: 86px;
+  padding: 8px 3px;
+  background: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  vertical-align: bottom;
+}
+
+.matrix tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 118px;
+  max-width: 150px;
+  padding: 6px 8px;
+  background: var(--surface);
+  font-weight: 600;
+  text-align: left;
+}
+
+.matrix thead .matrix__corner {
+  left: 0;
+  z-index: 3;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-align: left;
+}
+
+.matrix__label {
+  display: block;
+}
+
+.matrix__role {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 2px;
+  font-weight: 600;
+  text-align: inherit;
+}
+
+.passage__note {
+  margin: 4px 0 6px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.matrix th .tag {
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+.matrix__self {
+  background: repeating-linear-gradient(135deg, transparent 0 6px, var(--border) 6px 7px);
+}
+
+.matrix .is-current,
+.matrix thead th.is-current,
+.matrix tbody tr.is-current th {
+  background-color: var(--accent-soft);
+}
+
+.matrix__agency th,
+.matrix__agency td {
+  border-bottom: 2px solid var(--strong-border);
+}
+
+/* ---- detail panel ---- */
+
+.detail {
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.detail.is-sticky {
+  position: sticky;
+  top: 16px;
+}
+
+.qualifier-note {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.detail__heading {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.detail h3 {
+  margin: 20px 0 8px;
+  font-size: 0.9375rem;
+}
+
+.detail h4 {
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.detail p {
+  margin: 0 0 8px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.passage {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--strong-border);
+  background: var(--raised);
+}
+
+.passage .tag {
+  margin-bottom: 6px;
+}
+
+.passage blockquote {
+  margin: 0;
+}
+
+.passage figcaption {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.passage--plan {
+  border-left-style: dashed;
+}
+
+.relation-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.relation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.relation:hover,
+.mark:hover,
+.role-button:hover {
+  background: var(--accent-soft);
+}
+
+.relation__name {
+  font-weight: 600;
+}
+
+.titles {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.step__label {
+  margin: 10px 0 4px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.paths {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.paths li {
+  margin-bottom: 12px;
+}
+
+.path__label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.path__hops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.empty {
+  color: var(--muted);
+}
+
+/* ---- legend ---- */
+
+.legend {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.legend h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.legend__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.legend__items li {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.line-sample {
+  overflow: visible;
+}
+
+.legend__more summary {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.legend p {
+  max-width: 80ch;
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* The matrix always takes the full layout width so every column shows; the
+   detail panel follows the table. */
+.workspace[data-view='matrix'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace[data-view='matrix'] .detail.is-sticky {
+  position: static;
+}
+
+/* Once a table fits without sideways scrolling, its header row sticks to the
+   window. Narrower, the table scrolls inside a frame no taller than the
+   window, so its header row and role column both stay in view. */
+@media (min-width: 1140px) {
+  .scroller--matrix {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 1139px) {
+  .scroller--matrix {
+    max-height: calc(100vh - 24px);
+  }
+
+  /* A header row sticks to its frame, not the window; app.js sets how far the
+     page has scrolled past the frame's top so the row stays in the window. */
+  .matrix thead th {
+    top: var(--past-frame-top, 0px);
+  }
+}
+
+.scroller--matrix {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.detail .text-button {
+  text-align: left;
+}
+
+.detail__return {
+  display: block;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1099px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail.is-sticky {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .masthead,
+  .layout {
+    padding-inline: 16px;
+  }
+
+  .masthead h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Forced colours drop backgrounds and box shadows, so selection and the
+   current row are drawn with system-colour outlines. */
+@media (forced-colors: active) {
+  [aria-current='true']:not(.rel, .core),
+  .tab[aria-selected='true'],
+  .segmented__option:has(input:checked) {
+    outline: 3px solid Highlight;
+    outline-offset: 1px;
+  }
+
+  .matrix__self {
+    forced-color-adjust: none;
+    background: repeating-linear-gradient(135deg, Canvas 0 6px, GrayText 6px 7px);
+  }
+
+  .matrix .is-current {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .sat.is-selected .sat__ring,
+  .core[aria-current='true'] .core__disc {
+    stroke: Highlight;
+  }
+}
+
+</style>
+<style>
+.workspace-nav {
+  /* The shared tabs keep their colors when the host page changes. */
+  --text: light-dark(#0f2140, #e6ebf3);
+  --muted: light-dark(#4b5b75, #a8b5c9);
+  --accent: light-dark(#1d5bb8, #8db6ff);
+  --border: light-dark(#d5dce6, #2b3d5c);
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.workspace-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font: 600 15px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  text-align: center;
+  text-decoration: none;
+}
+
+.workspace-nav a:hover {
+  color: var(--text);
+}
+
+.workspace-nav a[aria-current='page'] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.workspace-nav a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .workspace-nav a {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+}
+
+@media (forced-colors: active) {
+  .workspace-nav a[aria-current='page'] {
+    border-bottom-color: Highlight;
+  }
+}
+
+</style>
+<style>
+/* The acceptance-criteria page covers the window when its tab is chosen,
+   above Explore's own stacked parts such as pinned table headers. */
+#acceptance-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+html.is-criteria {
+  overflow: hidden;
+}
+</style>
+<script>
+// Source model for the three explorations. Quotations are verbatim from the
+// controlling documents; statements are verbatim from Codex-authored planning
+// text. `npm run test:sources` verifies both against their origins.
+globalThis.responseModel = {
+  documents: {
+    soo: {
+      name: 'Revised AI Build Team Pilot SOO',
+      file: 'AI Build Team Pilot - SOO (3).pdf',
+      pages: 11,
+    },
+    qa: {
+      name: 'AI SOO Questions and Answers',
+      file: 'AI SOO Questions and Answers.pdf',
+      pages: 6,
+    },
+    usdr: {
+      name: 'USDR and CDS/OIT current-state research map',
+      file: 'USDR + CDS_OIT - UXR Procurement.pdf',
+      pages: 8,
+    },
+  },
+
+  // Origins: plan = colorado-procurement-improvement-plan.md,
+  // experience = colorado-procurement-prototype/experience.md. The illustrated
+  // message and all interface wording live in content.js, owned by Codex.
+  statements: {
+    ownerContact: {
+      origin: 'plan',
+      text: 'Record the current action owner separately from the agency’s contact.',
+    },
+    coordinatorOwns: {
+      origin: 'plan',
+      text: 'The coordinator owns communication and follow-through from assisted intake/ASR receipt to the agreed endpoint; SMO retains intake responsibilities, and authorized buyers, financial officials, contracting officers, and other reviewers retain their decisions.',
+    },
+    coordinationCapacity: {
+      origin: 'plan',
+      text: 'This coordination responsibility must come with allocated capacity and an escalation route across those teams, not an additional approval gate.',
+    },
+    handoffNames: {
+      origin: 'plan',
+      text: 'A handoff names the receiving person or staffed queue, the requested action, necessary evidence, and a response date.',
+    },
+    senderResponsible: {
+      origin: 'plan',
+      text: 'The sender remains responsible for follow-up until acceptance is recorded.',
+    },
+    unacceptedVisible: {
+      origin: 'plan',
+      text: 'Unaccepted assignments stay visible to a named queue manager.',
+    },
+    recordAuthorization: {
+      origin: 'plan',
+      text: 'Record the authorized agency decision-maker, scope/quote version, and pending, returned or approved outcome.',
+    },
+    noSubstitute: {
+      origin: 'plan',
+      text: 'The buyer validates the ordering with SMO and the agency; ASR receipt, an e-req, OIT review or Finance approval must not substitute for agency authorization of revised cost and scope.',
+    },
+    askOnce: {
+      origin: 'plan',
+      text: 'Ask for missing information once, with an owner and reason; preserve uncertainty rather than inventing answers.',
+    },
+    linkRecords: {
+      origin: 'plan',
+      text: 'Link the ASR, both e-reqs when present, CORE references, solicitation, contract, and signature evidence to the same procurement. Maintain a human-readable title.',
+    },
+    preserveSource: {
+      origin: 'plan',
+      text: 'Preserve the source, occurrence time, observation time, and actor behind updates.',
+    },
+    uncertainMatch: {
+      origin: 'plan',
+      text: 'An uncertain match goes to an operator for confirmation.',
+    },
+    messagesAnswer: {
+      origin: 'plan',
+      text: 'Agency messages should answer: what changed, who has the next action, whether the agency must act, what is expected next, when another update is due, and who to contact.',
+    },
+    showPromise: {
+      origin: 'plan',
+      text: 'Show the last confirmed status and the next promised update independently of any completion estimate.',
+    },
+    staleSource: {
+      origin: 'plan',
+      text: 'A stale source is a visibility problem, not evidence that procurement progressed.',
+    },
+    dataSeparates: {
+      origin: 'plan',
+      text: 'The core data separates the procurement, external references, source observations, milestones and approvals, responsibilities, communications, and supporting evidence.',
+    },
+    supportSituations: {
+      origin: 'plan',
+      text: 'Support unknown, not-applicable, waiting, returned-for-correction, cancelled, and route-changed situations without pretending every case follows eleven mandatory steps.',
+    },
+    leavesScope: {
+      origin: 'plan',
+      text: 'When a procurement leaves OIT’s scope, record the receiving route/contact and close OIT tracking explicitly; do not mark the purchase fulfilled or age it indefinitely.',
+    },
+    trackOutcomes: {
+      origin: 'plan',
+      text: 'Track separately requested, received, approved, signed, filed, and notified outcomes.',
+    },
+    systemInterface: {
+      origin: 'plan',
+      text: 'Use an approved interface for each source, with stable identifiers, ingestion that handles repeats, reconciliation, and freshness monitoring.',
+    },
+    verifyCapabilities: {
+      origin: 'plan',
+      text: 'Verify capabilities and planned upgrades with each owner; no webhook is assumed.',
+    },
+    serviceHubUpgrade: {
+      origin: 'plan',
+      text: 'ServiceHub upgrade testing is needed even if the tracker has a custom front end.',
+    },
+    mailboxAccess: {
+      origin: 'plan',
+      text: 'Start with designated mailboxes, forwarding rules, or approved scoped access.',
+    },
+    deterministicExtraction: {
+      origin: 'plan',
+      text: 'Use deterministic extraction where reliable; review ambiguous messages.',
+    },
+    neverInferApproval: {
+      origin: 'plan',
+      text: 'An operator records the update and source reference. Never infer approval from an unrelated message or silence.',
+    },
+    operatorUpdate: {
+      origin: 'plan',
+      text: 'A short update records the last confirmed state, next action, owner, and next check-in. Timers surface aging.',
+    },
+    elapsedTime: {
+      origin: 'plan',
+      text: 'Show uncertainty and ask the responsible operator; elapsed time cannot prove a transition.',
+    },
+    platformQuestion: {
+      origin: 'plan',
+      text: 'The Q&A lists ServiceNow products but does not answer whether custom app development there is allowed; it also describes Zurich with an anticipated Australia upgrade within two months.',
+    },
+    choosePlatform: {
+      origin: 'plan',
+      text: 'Choose using demonstrated fit, access, accessibility, integration effort, licensing, and who will maintain it.',
+    },
+    linkFirstRequisition: {
+      origin: 'plan',
+      text: 'Link the ASR and first requisition; do not infer those approvals from creation; send the title/number update.',
+    },
+    financeActions: {
+      origin: 'plan',
+      text: 'Show budget and accounting actions, required decisions, reasons for return, and accepted handoff to Purchasing.',
+    },
+    noForecast: {
+      origin: 'plan',
+      text: 'No completion forecast without sufficient comparable data.',
+    },
+  },
+
+  evidence: {
+    sooBlackHoles: {
+      doc: 'soo',
+      page: 1,
+      quotation:
+        '"Black holes." Agencies lose sight of their request at multiple points: immediately after initial submission, during the first financial approval, after intent to award, and through most of the contracts phase. Agencies don\'t know where their request is, who has it, or who to contact.',
+    },
+    sooNoContact: {
+      doc: 'soo',
+      page: 1,
+      quotation:
+        'No end-to-end point of contact. No one owns the agency relationship across the lifecycle.',
+      proposal: 'ownerContact',
+    },
+    sooUninformative: {
+      doc: 'soo',
+      page: 2,
+      quotation:
+        'Uninformative notifications. System emails contain only an e-req number, with no title, no stage, no expectation of what happens next.',
+      proposal: 'messagesAnswer',
+    },
+    sooFewerSteps: {
+      doc: 'soo',
+      page: 2,
+      quotation:
+        'The lifecycle described encompasses all steps for the most complicated procurements; some forms of procurement have fewer steps.',
+      proposal: 'supportSituations',
+    },
+    sooTierA: {
+      doc: 'soo',
+      page: 2,
+      quotation:
+        "Tier A: System event from OnBase, ServiceNow, VSS, CORE, or DocuSign. Directly capturable; these are the tracker's reliable trigger points.",
+      proposal: 'systemInterface',
+    },
+    sooTierB: {
+      doc: 'soo',
+      page: 2,
+      quotation:
+        'Tier B: Email-carried. A step whose only artifact is an email (fetch email letters, encumbrance approval threads, Finance to Purchasing handoffs, purchasing to customer information follow ups). Capturable if the tracker gets mailbox access and can parse the pattern.',
+      proposal: 'mailboxAccess',
+    },
+    sooTierC: {
+      doc: 'soo',
+      page: 2,
+      quotation:
+        'Tier C: Meeting/verbal. No artifact at all (scope back-and-forth, evaluation discussions, negotiation sessions). The tracker cannot see these;',
+      proposal: 'operatorUpdate',
+    },
+    sooTierCOptions: {
+      doc: 'soo',
+      page: 3,
+      quotation:
+        'stages current requires either a lightweight manual status-update step by the operator, or inferring "still in stage X" from elapsed time.',
+      proposal: 'elapsedTime',
+    },
+    sooIntakeBlackHole: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 4,
+      quotation: 'First black hole: request "no longer visible to Agency"',
+    },
+    sooEreqNotInformed: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 4,
+      quotation: 'Agency not informed an e-req now exists',
+    },
+    sooEreqTrigger: {
+      doc: 'soo',
+      column: 'Desired Tracker Intervention',
+      page: 4,
+      quotation:
+        'Primary trigger point: OnBase e-req creation event captured; agency notified with title + number pairing.',
+      proposal: 'linkFirstRequisition',
+    },
+    sooFinanceLoop: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 5,
+      quotation: '"Agencies not in the loop" during financial review',
+      proposal: 'financeActions',
+    },
+    sooSlowPublish: {
+      doc: 'soo',
+      page: 2,
+      quotation:
+        'Very slow process. Reportedly 1+ year on average just to publish a solicitation; agencies have no way to see or anticipate this.',
+    },
+    sooSolicitationOpaque: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 5,
+      quotation: 'Agency somewhat involved but timeline opaque',
+    },
+    sooAssignmentOnbase: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 5,
+      quotation: 'assignment noted in Onbase w/o logic noted;',
+    },
+    sooFetchNotSent: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 5,
+      quotation: 'Fetch email letters not always sent; no assigned point of contact',
+    },
+    sooAutomatedStageEmail: {
+      doc: 'soo',
+      column: 'Desired Tracker Intervention',
+      page: 5,
+      quotation:
+        'Automated stage email fires regardless of human fetch letter; assigned buyer recorded in manual tracker and Onbase.',
+    },
+    sooVendorDelays: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 6,
+      quotation: 'Vendor delays of months to years invisible to agency',
+    },
+    sooCustomBuild: {
+      doc: 'soo',
+      page: 7,
+      quotation:
+        'We anticipate the solution to be a custom build leveraging existing enterprise offerings.',
+    },
+    sooAttachmentNote: {
+      doc: 'soo',
+      page: 9,
+      quotation:
+        'Please note this only accounts for the pathway including a solicitation and contract and doesnt reflect when these steps are not needed.',
+    },
+    sooFetchLetter: {
+      doc: 'soo',
+      page: 10,
+      quotation:
+        'Fetch Letter: An email letter sent to the agency (business owner) to indicate a milestone and that OIT will be in contact with them every 5 days.',
+    },
+    sooServiceHub: {
+      doc: 'soo',
+      page: 10,
+      quotation: 'ServiceHub (ServiceNow): Where agency inputs and submits an ASR',
+    },
+    qaServiceNowQuestion: {
+      doc: 'qa',
+      historical: true,
+      page: 2,
+      question: 10,
+      quotation:
+        'is custom app development inside ServiceNow allowed for the one door front end?',
+      inference: 'platformQuestion',
+    },
+    qaServiceNowRelease: {
+      doc: 'qa',
+      // The supplied Q&A records this; it is not a check of the current platform.
+      historical: true,
+      page: 2,
+      question: 10,
+      quotation:
+        'OIT’s currently on the Zurich release, and will be upgrading to Australia in the next two months.',
+      proposal: 'serviceHubUpgrade',
+    },
+    usdrIntake: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'INITIAL INTAKE: Agency Business Owner submits the scope of work with requirements and estimated budget in ServiceHub via the Agency Service Request (ASR)',
+    },
+    usdrAsrReceived: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'ASR OFFICIALLY RECEIVED: OIT SMO receives scope of work and estimated budget via ASR. OIT SMO will notify OIT ITD of the ASR.',
+    },
+    usdrItdFeedback: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'FEEDBACK ON SCOPE OF WORK AND BUDGET (ASR): OIT ITD provides their feedback and input on scope of work and budget.',
+    },
+    usdrItdApproval: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        "OIT ITD APPROVAL: OIT Information Technology Director (ITD) approves Agency's revised Scope of Work and Estimated Budget",
+    },
+    usdrExpenditure: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'EXPENDITURE AUTHORIZATION: Agency business owner sends agency expenditure authorization to OIT via ASR.',
+      proposal: 'recordAuthorization',
+    },
+    usdrFirstEreq: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        '1ST E-REQ: OIT SMO creates first e-req from the approved ASR with OnBase and notifies OIT finance department.',
+    },
+    usdrReviewBudget: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'Review Financial Budget(s): OIT Finance Analyst reviews the estimated budget in the 1st e-req to the designated spend plans for agency and OIT to determine if they can accommodate the expenditure.',
+    },
+    usdrSpendingType: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SPENDING TYPE CHOSEN: OIT Finance Analyst inputs the accounting code, spending type into OnBase (agency, OIT, interagency). OIT Finance contact OIT accounting for review.',
+    },
+    usdrAccountingApproval: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'ACCOUNTING APPROVAL: OIT Accounting reviews 1st E-req to approve budget.',
+    },
+    usdrFinanceApproval: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'FINANCE APPROVAL: OIT Finance approves request and manually informs OIT purchasing department of e-req.',
+      proposal: 'neverInferApproval',
+    },
+    usdrAssignBuyer: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'ASSIGN PURCHASING BUYER: OIT Purchasing Manager reviews 1st e-req to assign it to OIT purchasing buyer.',
+    },
+    usdrPathChosen: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION PATH CHOSEN: OIT Purchasing Buyer determines solicitation path based on scope of work, e-req info, and agency input (situational).',
+    },
+    usdrPurchasingFetch: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'PURCHASING FETCH LETTER: OIT Purchasing Buyer sends a "fetch letter" to start relationship with agency. OIT purchasing stays in touch every 5 days.',
+    },
+    usdrSolicitationInput: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION INPUT: Agency Business Owner works with OIT purchasing buyer to add info needed to refine the scope of work, evaluation criteria, and overall solicitation.',
+    },
+    usdrTemplateToContracts: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CONTRACT TEMPLATE: OIT Purchasing Buyer sends solicitation material to OIT contracts so they may determine the contract template.',
+    },
+    usdrTemplateToBuyer: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CONTRACT TEMPLATE: OIT Contracting determines and sends contract template to be used in the solicitation to OIT Purchasing Buyer.',
+    },
+    usdrMaterialApproval: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'OIT Purchasing Buyer receives approvals from agency and internal stakeholders to publish solicitation',
+    },
+    usdrProposals: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'PROPOSALS SUBMITTED: OIT Purchasing Buyer receives vendor proposals.',
+    },
+    usdrRecommendation: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'Recommendation for Award: OIT Purchasing Buyer and Agency Business Owner presents selection to procurement leadership and answers questions.',
+    },
+    usdrIntentToAward: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'Intent to Award: OIT Purchasing Buyer and OIT Contract Specialist produces intent to award and notifies vendor.',
+    },
+    usdrSecondEreq: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        '2ND E-REQ: OIT Purchasing Buyer creates the 2nd eReq, and assigns the award to OIT Contracting.',
+    },
+    usdrContactFetch: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CONTACT FETCH LETTER: OIT Contracting sends a "fetch letter" to start relationship with agency. OIT contracting stays in touch every 5 days.',
+    },
+    usdrEncumbranceReview: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        '1st ENCUMBRANCE REVIEW: OIT Contracting emails OIT Finance for 1st review and approval of encumbrance.',
+    },
+    usdrAnalystEncumbrance: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'OIT Finance Analyst match account coding entered into CORE against Ereq OnBase.',
+    },
+    usdrEncumbranceRequest: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CONTRACT AND PURCHASING ENCUMBRANCE APPROVAL REQUEST: OIT Finance Analyst emails OIT Contracts and Purchasing Buyer for 2nd encumbrance approval.',
+    },
+    usdrContractsPurchasingEncumbrance: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'OIT Contracts and OIT Purchasing check contract amount, service dates, terminology (referencing correct task order number), accounting lines contract entered in CORE against Cobblestone and eReq in OnBase.',
+    },
+    usdrDirectorEncumbrance: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'OIT Finance Director checks amounts, contract number, any notes from contracting regarding budget. Notifies email thread that encumbrance has been approved.',
+    },
+    usdrOscRequested: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'OIT Contracts receives Finance, purchasing and contracting encumbrance approvals, and sends contract to DPA OSC for 3rd approval.',
+    },
+    usdrOscPreapproval: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'DPA OSC pre-APPROVAL: DPA OSC reviews the contract/ encumbrance for approval.',
+    },
+    usdrOscDuration: {
+      doc: 'usdr',
+      row: 'Friction',
+      page: 8,
+      quotation:
+        'DPA OSC pre-approval process can take a long time because they request to review all statements of work across state agencies.',
+    },
+    usdrSignatures: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        "CONTRACT SIGNATURES: OIT Contracting sends contract for signatures to vendor, OIT ED, and DPA OSC. Agency Business Owner cc'ed in distribution. Vendor reviews and signs contract. OIT Executive Director reviews and signs contract. DPA OSC reviews and signs contract.",
+    },
+    usdrContractSigned: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'CONTRACT SIGNED: OIT Contracting receives signed contracts.',
+    },
+    usdrOscReceived: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'DPA OSC APPROVAL RECEIVED: OIT Contracting recieves approval from DPS OSC.',
+      // The card wraps "recieves" across two lines; see
+      // artifacts/source-check/usdr-p8-osc-approval-received.png.
+      wrapped: { recieves: 'recieve s' },
+    },
+    usdrExecuted: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'STATEMENT OF WORK: OIT Contracting inputs contract in Cobblestone, emails Google Inbox (optional), and notifies Agency Business Owner of executed contract via email.',
+    },
+    usdrNotInLoop: {
+      doc: 'usdr',
+      row: 'Friction',
+      page: 8,
+      quotation:
+        'AGENCIES NOT IN THE LOOP: During the 1st financial approval stage, agencies are not kept in the loop, which creates confusion and frustration.',
+      proposal: 'financeActions',
+    },
+    usdrNoPointOfContact: {
+      doc: 'usdr',
+      row: 'Friction',
+      page: 8,
+      quotation:
+        'NO POINT OF CONTACT: Agencies are not assigned a point of contact person to guide their procurement experience end-to-end, creating a disorienting experience.',
+      proposal: 'coordinatorOwns',
+    },
+    usdrFetchNotSent: {
+      doc: 'usdr',
+      row: 'Friction',
+      page: 8,
+      quotation:
+        'FETCH LETTERS NOT ALWAYS SENT: Reportedly, fetch letters via email are not always sent out, leading to a gap in correspondence before the agency checks in.',
+    },
+    usdrCustomerService: {
+      doc: 'usdr',
+      row: 'Opportunities',
+      page: 8,
+      quotation:
+        'Consider a “customer service” point of contact who manages agency relationship during procurement process.',
+    },
+    usdrVendorDelays: {
+      doc: 'usdr',
+      row: 'Friction',
+      page: 8,
+      quotation:
+        'VENDOR DELAYS: It is not uncommon for vendors to push back on contract terms, delaying the contract for a few months to up to 2.5 years.',
+    },
+    usdrOffRamp: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'OFF-RAMP Agency staff may decide an alternative path with SIPA, NASPO, or use OIT as an advisory service by going with their own procurement.',
+      proposal: 'leavesScope',
+    },
+    usdrInvitationToBid: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'Procurement vehicles such as Invitation to Bid (ITB) do not use evaluation criteria, instead its based on lowest price.',
+    },
+    usdrBlueprintScope: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'A current-state blueprint visualizing the end-to-end lifecycle for the procurement process from initial awareness to contract signed.',
+    },
+    usdrNotMapped: {
+      doc: 'usdr',
+      page: 8,
+      quotation: '3. Interpretation of law/fiscal/tech requirements',
+    },
+    sooAsrDesired: {
+      doc: 'soo',
+      column: 'Desired Tracker Intervention',
+      page: 4,
+      quotation:
+        'Ticket created at intake; confirmation email with human-readable title, stage, and expected next step.',
+      proposal: 'linkRecords',
+    },
+    sooFinanceDesired: {
+      doc: 'soo',
+      column: 'Desired Tracker Intervention',
+      page: 5,
+      quotation:
+        'Stage transitions surfaced; email handoff captured or replaced with logged tracker event.',
+    },
+    sooContractsHandoff: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 6,
+      quotation: 'Agency loses visibility during handoff to Contracts',
+    },
+    sooSignatureTiming: {
+      doc: 'soo',
+      column: 'Current Pain',
+      page: 6,
+      quotation: 'Timing unclear to agency',
+    },
+    usdrBlackHoleLegend: {
+      doc: 'usdr',
+      page: 8,
+      quotation: '"Black hole"',
+    },
+    usdrScopePreAsrAgency: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SCOPE OF WORK PRE-ASR: Agency Business Owner conducts discovery to shape scope of work.',
+    },
+    usdrBudgetPreAsr: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'ESTIMATED BUDGET PRE-ASR: Agency Business Owner shapes estimated budget based market research / competitive analysis',
+    },
+    usdrScopePreAsrItd: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SCOPE OF WORK PRE-ASR: OIT ITD may support Agency Product Owner in crafting material for ASR submission (scope of work/estimated budget).',
+    },
+    usdrAgencyApprovesUpdates: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'AGENCY APPROVES UPDATES: Agency Business Owner refines scope of work and estimated budget based on input from OIT ITD.',
+    },
+    usdrItdTechReview: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'ASR TECHNOLOGY REVIEW: OIT ITD does a technology review of the scope of work and estimated budget.',
+    },
+    usdrItdBottleneck: {
+      doc: 'usdr',
+      row: 'Opportunities',
+      page: 8,
+      quotation:
+        'Remove bottlenecks (high burden waterfall-approval models, ITD as single contact for multiple responsibilities).',
+    },
+    usdrChoosingPath: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CHOOSING SOLICITATION PATH: At times, Agency Business Owner may be contacted to help select solicitation path.',
+    },
+    usdrSolicitationStarts: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        '(RFP) SOLICITATION STARTS: OIT Purchasing Buyer starts drafting the solicitation based on...',
+    },
+    usdrSolicitationInputBuyer: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION INPUT: OIT Purchasing Buyer engages Agency Business Owner and stakeholders for input, buy-in on solicitation.',
+    },
+    usdrSolicitationPrep: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION PREP: OIT Purchasing Buyer incorporates contract template into solicitation material. Sends solicitation for review and finalization with contract details.',
+    },
+    usdrSolicitationReviewAgency: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION REVIEW: Agency Business Owner reviews solicitation from OIT Purchasing Buyer for feedback and finalization',
+    },
+    usdrStakeholderReview: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION REVIEW: OIT stakeholders and OIT Vendor Management Office (VMO) group reviews solicitation for feedback, and finalization',
+    },
+    usdrTimeline: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'SOLICITATION TIMELINE: OIT Purchasing Buyer sets timeline and date for vendors to apply',
+    },
+    usdrAgencyVendorQa: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'VENDOR Q&A: Agency Business Owner responds to vendor Q&A',
+    },
+    usdrProposalsTrimmed: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        "PROPOSALS TRIMMED: OIT Purchasing Buyer removes vendors that don't provide all information requested.",
+    },
+    usdrVendorEvaluationAgency: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'VENDOR EVALUATION: Agency Business Owner and evaluation team reviews and scores remaining vendor proposals based on evaluation criteria unless specified by procurement vehicle.',
+    },
+    usdrContractNegotiations: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CONTRACT NEGOTIATIONS: OIT Contracting negotiates terms, conditions, and, if needed, Statement of Work with the vendor.',
+    },
+  },
+
+  notification: {
+    before: { reference: 'ER-DEMO-1042-1', evidence: ['sooUninformative'] },
+    // `kind` indexes responseCopy.notification.sources: system, email, person.
+    facts: [
+      {
+        id: 'title',
+        where: 'subject',
+        text: 'Field inspection scheduling',
+        kind: 'system',
+        // No source shows a system that holds a human-readable procurement title.
+        unestablished: true,
+        known: ['sooServiceHub', 'sooAsrDesired'],
+        implication: ['linkRecords'],
+      },
+      {
+        id: 'stage',
+        where: 'subject',
+        copyKey: 'stageText',
+        // A Finance approval arrives as an email handoff; mailbox access is unshown.
+        kind: 'email',
+        unestablished: true,
+        known: ['usdrFinanceApproval', 'sooTierB', 'sooFinanceDesired'],
+        implication: ['mailboxAccess', 'uncertainMatch'],
+        relatesTo: 'finance',
+      },
+      {
+        id: 'ereq',
+        where: 0,
+        text: 'first e-req ER-DEMO-1042-1',
+        kind: 'system',
+        known: ['sooEreqNotInformed', 'sooEreqTrigger', 'sooTierA'],
+        implication: ['linkFirstRequisition', 'uncertainMatch'],
+      },
+      {
+        id: 'owner',
+        where: 1,
+        copyKey: 'ownerText',
+        // The research records a buyer-assignment step; the Finance handoff
+        // alone does not show that anyone has accepted it.
+        kind: 'person',
+        unestablished: true,
+        known: ['usdrAssignBuyer', 'sooAssignmentOnbase', 'sooAutomatedStageEmail'],
+        implication: ['senderResponsible', 'operatorUpdate', 'preserveSource'],
+        relatesTo: 'purchasing',
+      },
+      {
+        id: 'authorization',
+        where: 1,
+        text: 'Your authorization for quote version 2 is recorded',
+        kind: 'system',
+        // The ASR carries the authorization; binding it to a quote version is unshown.
+        unestablished: true,
+        known: ['usdrExpenditure'],
+        implication: ['recordAuthorization', 'noSubstitute'],
+      },
+      {
+        id: 'approval',
+        where: 1,
+        copyKey: 'approvalText',
+        // The research records Finance informing Purchasing by manual email;
+        // sender, scope and freshness of any such message need confirmation.
+        kind: 'email',
+        unestablished: true,
+        known: ['usdrFinanceApproval', 'sooTierB'],
+        implication: ['deterministicExtraction', 'neverInferApproval', 'mailboxAccess'],
+        relatesTo: 'finance',
+      },
+      {
+        id: 'contact',
+        where: 2,
+        text: 'Casey Diaz remains your contact',
+        kind: 'person',
+        arrangement: 'proposed',
+        known: ['sooNoContact', 'usdrNoPointOfContact'],
+        implication: ['ownerContact', 'coordinatorOwns'],
+        relatesTo: 'coordinator',
+      },
+      {
+        id: 'promise',
+        where: 2,
+        text: 'Your next update is due October 20',
+        kind: 'person',
+        // The research's five-day contact starts with the assigned buyer's fetch
+        // letter, which this message says is not yet in place, and such letters
+        // are reported as not always sent.
+        unestablished: true,
+        known: ['sooFetchLetter', 'usdrPurchasingFetch', 'usdrFetchNotSent'],
+        implication: ['showPromise'],
+      },
+      {
+        id: 'agencyAction',
+        where: 2,
+        copyKey: 'agencyActionText',
+        kind: 'person',
+        // At Purchasing the research records that the agency may be asked for input.
+        unestablished: true,
+        known: ['usdrChoosingPath', 'usdrSolicitationInput', 'usdrPurchasingFetch', 'usdrFetchNotSent'],
+        implication: ['askOnce', 'messagesAnswer'],
+        relatesTo: 'purchasing',
+      },
+    ],
+  },
+
+  relationships: {
+    layers: ['decision', 'information', 'communication'],
+    // A reading aid that roughly follows the solicitation-and-contract pathway
+    // on USDR page 8; it is not a sequence every procurement follows.
+    nodes: [
+      { id: 'coordinator', name: 'Case coordinator', arrangement: 'proposed' },
+      { id: 'smo', name: 'OIT Service Management Office', roles: ['OIT SMO'] },
+      {
+        id: 'itd',
+        name: 'OIT IT Director',
+        roles: ['OIT Information Technology Director (ITD)'],
+      },
+      {
+        id: 'finance',
+        name: 'OIT Finance',
+        roles: ['OIT Finance Manager', 'OIT Finance Analyst', 'OIT Finance Director'],
+      },
+      { id: 'accounting', name: 'OIT Accounting' },
+      {
+        id: 'purchasing',
+        name: 'OIT Purchasing',
+        roles: ['OIT Purchasing Manager', 'OIT Purchasing Buyer'],
+      },
+      {
+        id: 'vmo',
+        name: 'OIT stakeholders and VMO',
+        roles: ['OIT stakeholders and OIT Vendor Management Office (VMO) group'],
+      },
+      { id: 'leadership', name: 'Procurement leadership' },
+      { id: 'vendor', name: 'Vendor' },
+      { id: 'contracting', name: 'OIT Contracting', roles: ['OIT Contract Specialist'] },
+      { id: 'osc', name: 'DPA Office of the State Controller', roles: ['DPA OSC'] },
+      { id: 'ed', name: 'OIT Executive Director' },
+    ],
+    agency: { id: 'agency', name: 'Agency Business Owner' },
+    // Decision edges run from the role deciding to the role acting on the
+    // decision; information edges from sender to receiver. An edge is recorded
+    // only where a cited passage names its receiver. `basis: 'inferred'` marks a
+    // wholly reconstructed edge; `inferred` lists passages whose use on an
+    // otherwise recorded edge is our reconstruction.
+    edges: [
+      {
+        id: 'd-agency-smo',
+        layer: 'decision',
+        from: 'agency',
+        to: 'smo',
+        basis: 'inferred',
+        evidence: ['usdrExpenditure', 'usdrAsrReceived'],
+      },
+      {
+        id: 'd-itd-smo',
+        layer: 'decision',
+        from: 'itd',
+        to: 'smo',
+        basis: 'inferred',
+        evidence: ['usdrItdTechReview', 'usdrItdApproval', 'usdrFirstEreq'],
+      },
+      {
+        id: 'd-accounting-finance',
+        layer: 'decision',
+        from: 'accounting',
+        to: 'finance',
+        basis: 'inferred',
+        evidence: ['usdrAccountingApproval', 'usdrSpendingType'],
+      },
+      {
+        id: 'd-finance-purchasing',
+        layer: 'decision',
+        from: 'finance',
+        to: 'purchasing',
+        evidence: ['usdrFinanceApproval', 'usdrAssignBuyer'],
+      },
+      {
+        id: 'd-agency-purchasing',
+        layer: 'decision',
+        from: 'agency',
+        to: 'purchasing',
+        evidence: ['usdrMaterialApproval', 'usdrVendorEvaluationAgency'],
+        inferred: ['usdrVendorEvaluationAgency'],
+      },
+      { id: 'd-purchasing-vendor', layer: 'decision', from: 'purchasing', to: 'vendor', evidence: ['usdrIntentToAward'] },
+      { id: 'd-contracting-vendor', layer: 'decision', from: 'contracting', to: 'vendor', evidence: ['usdrIntentToAward'] },
+      {
+        id: 'd-finance-contracting',
+        layer: 'decision',
+        from: 'finance',
+        to: 'contracting',
+        evidence: ['usdrAnalystEncumbrance', 'usdrDirectorEncumbrance', 'usdrOscRequested'],
+      },
+      {
+        id: 'd-purchasing-contracting',
+        layer: 'decision',
+        from: 'purchasing',
+        to: 'contracting',
+        evidence: ['usdrContractsPurchasingEncumbrance', 'usdrOscRequested'],
+      },
+      {
+        id: 'd-osc-contracting',
+        layer: 'decision',
+        signature: true,
+        from: 'osc',
+        to: 'contracting',
+        evidence: ['usdrOscPreapproval', 'usdrOscReceived', 'usdrSignatures', 'usdrContractSigned'],
+        caveats: ['usdrOscDuration'],
+      },
+      {
+        id: 'd-vendor-contracting',
+        layer: 'decision',
+        signature: true,
+        from: 'vendor',
+        to: 'contracting',
+        evidence: ['usdrSignatures', 'usdrContractSigned'],
+      },
+      {
+        id: 'd-ed-contracting',
+        layer: 'decision',
+        signature: true,
+        from: 'ed',
+        to: 'contracting',
+        evidence: ['usdrSignatures', 'usdrContractSigned'],
+      },
+
+      { id: 'i-agency-smo', layer: 'information', from: 'agency', to: 'smo', evidence: ['usdrIntake', 'usdrAsrReceived'] },
+      {
+        id: 'i-agency-itd',
+        layer: 'information',
+        from: 'agency',
+        to: 'itd',
+        basis: 'inferred',
+        evidence: ['usdrAgencyApprovesUpdates', 'usdrItdApproval'],
+      },
+      { id: 'i-smo-itd', layer: 'information', from: 'smo', to: 'itd', evidence: ['usdrAsrReceived'] },
+      { id: 'i-smo-finance', layer: 'information', from: 'smo', to: 'finance', evidence: ['usdrFirstEreq'] },
+      { id: 'i-finance-accounting', layer: 'information', from: 'finance', to: 'accounting', evidence: ['usdrSpendingType'] },
+      {
+        id: 'i-finance-purchasing',
+        layer: 'information',
+        from: 'finance',
+        to: 'purchasing',
+        evidence: ['usdrFinanceApproval', 'usdrEncumbranceRequest'],
+        caveats: ['sooTierB'],
+      },
+      {
+        id: 'i-agency-purchasing',
+        layer: 'information',
+        from: 'agency',
+        to: 'purchasing',
+        basis: 'inferred',
+        evidence: ['usdrSolicitationReviewAgency', 'usdrAgencyVendorQa'],
+      },
+      {
+        id: 'i-purchasing-vmo',
+        layer: 'information',
+        from: 'purchasing',
+        to: 'vmo',
+        basis: 'inferred',
+        evidence: ['usdrSolicitationPrep', 'usdrStakeholderReview'],
+      },
+      { id: 'i-purchasing-leadership', layer: 'information', from: 'purchasing', to: 'leadership', evidence: ['usdrRecommendation'] },
+      { id: 'i-agency-leadership', layer: 'information', from: 'agency', to: 'leadership', evidence: ['usdrRecommendation'] },
+      {
+        id: 'i-vmo-purchasing',
+        layer: 'information',
+        from: 'vmo',
+        to: 'purchasing',
+        basis: 'inferred',
+        evidence: ['usdrStakeholderReview'],
+      },
+      { id: 'i-vendor-purchasing', layer: 'information', from: 'vendor', to: 'purchasing', evidence: ['usdrProposals'] },
+      {
+        id: 'i-purchasing-contracting',
+        layer: 'information',
+        from: 'purchasing',
+        to: 'contracting',
+        evidence: ['usdrTemplateToContracts', 'usdrSecondEreq'],
+      },
+      { id: 'i-contracting-purchasing', layer: 'information', from: 'contracting', to: 'purchasing', evidence: ['usdrTemplateToBuyer'] },
+      { id: 'i-contracting-finance', layer: 'information', from: 'contracting', to: 'finance', evidence: ['usdrEncumbranceReview'] },
+      { id: 'i-finance-contracting', layer: 'information', from: 'finance', to: 'contracting', evidence: ['usdrEncumbranceRequest'] },
+      { id: 'i-contracting-osc', layer: 'information', from: 'contracting', to: 'osc', evidence: ['usdrOscRequested', 'usdrSignatures'] },
+      {
+        id: 'i-contracting-vendor',
+        layer: 'information',
+        from: 'contracting',
+        to: 'vendor',
+        evidence: ['usdrContractNegotiations', 'usdrSignatures'],
+        caveats: ['usdrVendorDelays', 'sooVendorDelays'],
+      },
+      { id: 'i-contracting-ed', layer: 'information', from: 'contracting', to: 'ed', evidence: ['usdrSignatures'] },
+
+      {
+        id: 'c-itd-agency',
+        layer: 'communication',
+        from: 'itd',
+        to: 'agency',
+        evidence: ['usdrItdFeedback', 'usdrAgencyApprovesUpdates'],
+        caveats: ['usdrItdBottleneck'],
+      },
+      {
+        id: 'c-purchasing-agency',
+        layer: 'communication',
+        from: 'purchasing',
+        to: 'agency',
+        evidence: ['usdrPurchasingFetch', 'usdrSolicitationInput'],
+        caveats: ['usdrFetchNotSent', 'sooFetchNotSent'],
+      },
+      {
+        id: 'c-contracting-agency',
+        layer: 'communication',
+        from: 'contracting',
+        to: 'agency',
+        evidence: ['usdrContactFetch', 'usdrExecuted'],
+        caveats: ['sooContractsHandoff', 'sooSignatureTiming'],
+      },
+      {
+        id: 'c-coordinator-agency',
+        layer: 'communication',
+        from: 'coordinator',
+        to: 'agency',
+        arrangement: 'proposed',
+        statements: ['coordinatorOwns', 'coordinationCapacity'],
+        evidence: ['usdrCustomerService', 'usdrNoPointOfContact'],
+      },
+    ],
+    // Steps that USDR page 8 marks with its "Black hole" icon, by the unit
+    // performing the step. Icon placement is visual, not text: each was checked
+    // by eye against page crops retained in artifacts/source-check/.
+    blackHoles: {
+      legend: 'usdrBlackHoleLegend',
+      steps: [
+        { node: 'agency', evidence: 'usdrScopePreAsrAgency' },
+        { node: 'agency', evidence: 'usdrBudgetPreAsr' },
+        { node: 'itd', evidence: 'usdrScopePreAsrItd' },
+        { node: 'smo', evidence: 'usdrAsrReceived' },
+        { node: 'finance', evidence: 'usdrReviewBudget' },
+        { node: 'finance', evidence: 'usdrFinanceApproval' },
+        { node: 'agency', evidence: 'usdrChoosingPath' },
+        { node: 'purchasing', evidence: 'usdrPathChosen' },
+        { node: 'purchasing', evidence: 'usdrSolicitationStarts' },
+        { node: 'purchasing', evidence: 'usdrSolicitationInputBuyer' },
+        { node: 'contracting', evidence: 'usdrTemplateToBuyer' },
+        { node: 'purchasing', evidence: 'usdrSolicitationPrep' },
+        { node: 'agency', evidence: 'usdrSolicitationReviewAgency' },
+        { node: 'vmo', evidence: 'usdrStakeholderReview' },
+        { node: 'purchasing', evidence: 'usdrMaterialApproval' },
+        { node: 'purchasing', evidence: 'usdrTimeline' },
+        { node: 'purchasing', evidence: 'usdrProposalsTrimmed' },
+        { node: 'contracting', evidence: 'usdrContractNegotiations' },
+      ],
+    },
+    // A gap is our reading of a reported loss of agency visibility at a unit
+    // with a marked black hole. `route: 'recorded'` marks a gap reported even
+    // though the research records a contact route there. `basis` names the
+    // content.js sentence explaining that gap, where one applies to it.
+    gaps: [
+      { node: 'smo', basis: 'gapBasis', evidence: ['sooIntakeBlackHole', 'usdrAsrReceived'] },
+      { node: 'finance', basis: 'gapBasis', evidence: ['usdrNotInLoop', 'sooFinanceLoop'] },
+      {
+        node: 'purchasing',
+        route: 'recorded',
+        basis: 'gapReportedBasis',
+        evidence: ['sooSlowPublish', 'sooSolicitationOpaque', 'usdrFetchNotSent'],
+      },
+      {
+        node: 'contracting',
+        route: 'recorded',
+        basis: 'gapReportedBasis',
+        evidence: ['sooContractsHandoff', 'sooVendorDelays', 'sooSignatureTiming'],
+      },
+    ],
+    scopeEvidence: ['sooFewerSteps', 'sooAttachmentNote', 'usdrBlueprintScope', 'usdrNotMapped'],
+  },
+
+  reasoning: {
+    choices: [
+      {
+        id: 'contact',
+        alternatives: ['usdrPurchasingFetch', 'usdrContactFetch'],
+        constraints: [],
+        rationale: ['coordinatorOwns'],
+        evidence: [
+          'sooBlackHoles',
+          'sooNoContact',
+          'usdrNoPointOfContact',
+          'usdrCustomerService',
+          'usdrFetchNotSent',
+          'sooFetchNotSent',
+          'sooAutomatedStageEmail',
+        ],
+        relatesTo: 'coordinator',
+        engineering: ['handoffNames', 'senderResponsible', 'unacceptedVisible', 'dataSeparates'],
+      },
+      {
+        id: 'sources',
+        constraints: ['sooTierA', 'sooTierB', 'sooTierC'],
+        evidence: ['sooUninformative', 'sooEreqTrigger', 'usdrFinanceApproval'],
+        engineering: ['systemInterface', 'deterministicExtraction', 'neverInferApproval'],
+      },
+      {
+        id: 'waiting',
+        alternatives: ['sooTierCOptions'],
+        constraints: ['sooVendorDelays', 'usdrVendorDelays', 'usdrOscDuration'],
+        rationale: ['operatorUpdate'],
+        evidence: ['sooTierC', 'sooFetchLetter', 'usdrFetchNotSent'],
+        engineering: ['showPromise', 'staleSource', 'noForecast'],
+      },
+      {
+        id: 'routes',
+        constraints: ['sooFewerSteps', 'sooAttachmentNote'],
+        evidence: ['usdrOffRamp', 'usdrPathChosen', 'usdrInvitationToBid', 'usdrBlueprintScope'],
+        engineering: ['leavesScope', 'trackOutcomes'],
+      },
+      {
+        id: 'platform',
+        alternatives: ['sooCustomBuild', 'qaServiceNowQuestion'],
+        constraints: ['qaServiceNowRelease'],
+        rationale: ['choosePlatform'],
+        evidence: ['sooTierA', 'sooServiceHub'],
+        engineering: ['serviceHubUpgrade', 'verifyCapabilities'],
+      },
+    ],
+  },
+};
+
+</script>
+<script>
+globalThis.relationshipCopy = {
+  page: {
+    title: 'Explore procurement relationships',
+    heading: 'Explore procurement relationships',
+    navLabel: 'Procurement prototypes',
+    exploreLink: 'Explore procurement relationships',
+    instructions: 'Click a node to center it, click a line to explain it',
+    emailLink: 'Visualize acceptance criteria',
+  },
+  views: {
+    label: 'Ways to read the relationships',
+    orbit: {
+      name: 'Role orbit',
+      purpose: 'Explore connection levels around the centered role.',
+    },
+    matrix: {
+      name: 'Who to whom',
+      purpose: 'See which roles connect and where several relationships meet.',
+    },
+  },
+  roles: { pickerLabel: 'Focus on a role' },
+  roleLabels: {
+    agency: 'Business Owner',
+    coordinator: 'Case coordinator',
+    smo: 'Service Management',
+    itd: 'IT Director',
+    finance: 'Finance',
+    accounting: 'Accounting',
+    purchasing: 'Purchasing',
+    vmo: 'Stakeholders and VMO',
+    leadership: 'Procurement leadership',
+    vendor: 'Vendor',
+    contracting: 'Contracting',
+    osc: 'Office of the State Controller',
+    ed: 'Executive Director',
+  },
+  layers: {
+    pickerLabel: 'Relationship type',
+    all: 'All types',
+    decision: 'Decisions',
+    information: 'Information',
+    communication: 'Agency contact routes',
+  },
+  relations: {
+    decisionOut: 'Decisions supplied',
+    decisionIn: 'Decisions received',
+    informationOut: 'Information sent',
+    informationIn: 'Information received',
+    communicationOut: 'Agency contact routes',
+    communicationIn: 'Agency contact routes',
+  },
+  edge: {
+    decision: 'Decision from {from} to {to}',
+    information: 'Information from {from} to {to}',
+    communication: 'Agency contact route from {from} to {to}',
+  },
+  basis: {
+    recorded: 'Recorded in sources',
+    interpretation: 'Our interpretation',
+    proposed: 'Our proposal',
+    reconstructedPassage: 'Our interpretation of this passage',
+    signature: 'Signature; the research does not establish current signing authority',
+  },
+  basisNote: {
+    recorded: 'The cited source text or drawn map connector names both parties directly.',
+    reconstructed: 'We inferred a party or the direction of this connection from the cited passages.',
+    partlyReconstructed: 'The sources directly record this connection. We interpreted some additional passages used to explain it.',
+    proposed: 'Continuing responsibility for agency updates is our proposed arrangement, subject to OIT agreement.',
+  },
+  qualifier: {
+    roleMapping: 'Party identification inferred',
+    situational: 'Situational step',
+    optional: 'Optional step',
+    confirm: 'Practice to confirm',
+    parallel: 'Parallel signing card',
+    ownership: 'Cure responsibilities to confirm',
+    struck: 'Source text struck through',
+    includes: 'Cited activities include: {list}',
+  },
+  qualifierNote: {
+    roleMapping: 'We identify a party named in the source with the displayed role or unit. That identification is our inference.',
+    situational: 'The research labels the associated connection “Situational”.',
+    optional: 'The research labels the associated connection “Optional”.',
+    confirm: 'The research describes this contact practice. Confirm its current cadence and delivery with OIT.',
+    parallel: 'The research shows these signing roles in parallel; it does not specify a signing order.',
+    ownership: 'The research describes the Buyer notifying vendors; the SOO describes contracting allowing an update. Confirm who handles each action with OIT.',
+    struck: 'The source strikes through the marked words. The quotation retains those words as extracted and shows the source’s strike-through.',
+  },
+  origin: {
+    added: 'Added after source review',
+    changed: 'Revised after source review',
+  },
+  originNote: {
+    added: 'This connection was added after checking the cited sources against the initial model.',
+    changed: 'Source review changed the evidence or classification of this connection in the initial model.',
+  },
+  evidence: {
+    heading: 'Source evidence',
+    caveatsHeading: 'Related source context',
+    statementsHeading: 'Our proposed arrangement',
+    planOrigin: 'Colorado procurement improvement plan',
+    connector: 'Drawn map connector',
+  },
+  citation: {
+    page: '{document}, page {page}',
+    column: 'SOO column: {column}',
+    row: 'Research row: {row}',
+  },
+  absence: {
+    notRecorded: 'No connection modeled here',
+    notApplicable: 'Not applicable',
+  },
+  blackHole: {
+    heading: 'Steps marked “Black hole” in the research',
+    legendHeading: 'The research marker',
+    mark: 'Step {n} of {count} marked “Black hole” in the research for {role}',
+    count: '{role}; steps marked “Black hole” in the research: {count}',
+    placement: 'The “Black hole” marks locate steps performed by each role. They do not assign responsibility for lost visibility or measure work volume.',
+  },
+  gap: {
+    heading: 'Agency visibility',
+    noRoute: 'Visibility gap reported; no contact route modeled',
+    despiteRoute: 'Visibility gap reported; contact route documented',
+    noRouteBasis: 'The cited sources report lost agency visibility. This model includes no agency contact route for this unit. Mapping the gap to the unit is our interpretation, not an OIT assignment of responsibility.',
+    despiteRouteBasis: 'The sources report lost agency visibility. We place that evidence alongside a documented contact route, whose reliability remains to confirm. Mapping the gap to the unit is our interpretation, not an OIT assignment of responsibility.',
+  },
+  detail: {
+    empty: 'Select a role or relationship to inspect its source.',
+    roleTitles: 'Roles named in the research',
+    relationships: 'Connections for this role',
+    return: 'Return to the view',
+  },
+  legend: {
+    heading: 'Reading the marks',
+    absence: 'In Who to whom, an empty cell means no connection is included in this model—not that no real connection exists.',
+    order: 'Roles are grouped for reading; their order is not an approval sequence.',
+    records: 'The marks show modeled relationships, not work volume or authority.',
+    origin: 'Source review added and revised selected connections. This model is still not exhaustive.',
+    qualified: 'Includes a qualified source activity',
+    more: 'Reading notes',
+  },
+  status: { selected: 'Selected {item}' },
+  orbit: {
+    chart: 'Relationships around {role}',
+    centerOn: 'Focus on {role}',
+    inbound: 'Incoming',
+    outbound: 'Outgoing',
+    zoomLabel: 'Zoom',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
+    levelsShown: 'Levels: {shown} of {total}',
+    levelGroup: 'Connection level {n}',
+    levelsNote: 'Levels count modeled connections in either direction, not procurement steps; each outer role uses one existing connection, with other links in role details and Who to whom.',
+  },
+  matrix: {
+    caption: 'Relationships from each role to each recipient',
+    corner: 'From ↓ / To →',
+    directionNote: 'A decision runs from the role making it to the role receiving it. Information runs from sender to recipient; agency contact routes run to the agency.',
+  },
+};
+
+</script>
+<script>
+// Local corrections to the frozen model.js snapshot from this gallery's
+// source check of USDR page 8. model.js stays byte-for-byte for provenance;
+// graph.js applies this file to form the view model. `npm run test:sources`
+// verifies every quotation here on its stated page.
+//
+// Rule: a relationship is recorded where its cited evidence names both parties
+// directly (a research title of the unit counts). Evidence is a quoted card, or
+// a connector the map draws between two named cards (a system box such as
+// ServiceHub may sit between them as the channel); connectors never chain
+// separate stages into a case path. A group or generic name mapped to a unit
+// does not count as naming it; `roleMapping` lists the passages whose party we
+// map, since the same passage can name another party directly. Qualifiers
+// belong to the cited source activity, never to the whole relationship.
+globalThis.relationshipSupplement = {
+  evidence: {
+    usdrFinalizingInputs: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'FINALIZING SCOPE OF WORK & EVALUATION METRICS: OIT Purchasing Buyer incorporates the agencies and stakeholder inputs to finalize the scope of work and evaluation metrics.',
+    },
+    // The connector from this card is labelled "Optional" on the map.
+    usdrInformallyInformed: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'INFORMALLY INFORMED: Agency Business Owner may inform OIT ITD that their agency is working on an ASR.',
+      qualifiers: ['optional'],
+    },
+    // The branches into these two cards are labelled "Situational".
+    usdrCurePeriod: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'CURE PERIOD: OIT Purchasing Buyer informs vendors who have a minor administrative error that would disqualify them so they may update their proposal.',
+      qualifiers: ['situational', 'ownership'],
+    },
+    usdrAppealPeriod: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'APPEAL PERIOD: An open period where non-winning vendors may appeal to OIT Purchasing Buyer & OIT Contract Specialist.',
+      qualifiers: ['situational'],
+    },
+    // The model's usdrSignatures joins four parallel cards; these are the
+    // cards separately, so no signing order is implied.
+    usdrSignaturesSent: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        "CONTRACT SIGNATURES: OIT Contracting sends contract for signatures to vendor, OIT ED, and DPA OSC. Agency Business Owner cc'ed in distribution.",
+    },
+    usdrSignatureVendor: { doc: 'usdr', page: 8, quotation: 'Vendor reviews and signs contract.', qualifiers: ['parallel'] },
+    usdrSignatureEd: { doc: 'usdr', page: 8, quotation: 'OIT Executive Director reviews and signs contract.', qualifiers: ['parallel'] },
+    usdrSignatureOsc: { doc: 'usdr', page: 8, quotation: 'DPA OSC reviews and signs contract.', qualifiers: ['parallel'] },
+    usdrQaPosted: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'Q&A Posted: OIT Purchasing Buyer post vendor Q&A responses.',
+    },
+    // The SOO glossary names "contracting" for the cure period, the research
+    // card the Purchasing Buyer; both carry the ownership qualifier, unresolved.
+    sooCurePeriod: {
+      doc: 'soo',
+      page: 10,
+      quotation:
+        'Cure Period: A period of time where contracting will allow a vendor to update their proposal if it fixes a clerical error and does not change their proposal meaningfully.',
+      qualifiers: ['ownership'],
+    },
+    usdrMapsList: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'What it does map: 1. The key task for procuring a solution across the majority of solicitation and contract vehicle types 2. Intended outcomes by stage 3. The key friction and pain points shared in previous and current research 4. The key systems used in the procurement process',
+    },
+    usdrExcludedStages: {
+      doc: 'usdr',
+      page: 8,
+      quotation: 'The blueprint excludes the implementation, going live, and contract renewal stages.',
+    },
+    usdrNotMappedList: {
+      doc: 'usdr',
+      page: 8,
+      quotation:
+        'What it does not map: (may be be added later as we collate, or in the report) 1. Shadow processes people had to take to streamline their work 2. Time variation across different steps 3. Interpretation of law/fiscal/tech requirements',
+    },
+  },
+
+  // Research role titles that the model assigns to a unit by our mapping.
+  roleTitleMapping: {
+    contracting: ['OIT Contract Specialist'],
+  },
+
+  // Qualifiers on passages already in model.js; their text is unchanged.
+  passageQualifiers: {
+    usdrPurchasingFetch: ['confirm'],
+    usdrContactFetch: ['confirm'],
+    usdrOscDuration: ['struck'],
+  },
+
+  // Source markup the extracted text loses. The quotation stays as extracted
+  // (and as checked); the page draws a line through these words.
+  markup: {
+    usdrOscDuration: { struck: ['take a'] },
+  },
+
+  // Connectors drawn on page 8, as the card text at each end (and the system
+  // box between, where the line passes through one). Checked on the crops in
+  // artifacts/source-audit-2026-09-30T06-07-11Z/ and review-source-3-*/.
+  connectors: {
+    'i-agency-itd': [['EXPENDITURE AUTHORIZATION', 'ServiceHub for ASR', 'OIT ITD APPROVAL']],
+    'd-vendor-contracting': [['Vendor reviews and signs contract.', 'CONTRACT SIGNED']],
+    'd-ed-contracting': [['OIT Executive Director reviews and signs contract.', 'CONTRACT SIGNED']],
+    'd-osc-contracting': [['DPA OSC reviews and signs contract.', 'CONTRACT SIGNED']],
+  },
+
+  edges: {
+    added: [
+      { id: 'i-purchasing-agency', layer: 'information', from: 'purchasing', to: 'agency', evidence: ['usdrSolicitationReviewAgency'] },
+      { id: 'i-itd-agency', layer: 'information', from: 'itd', to: 'agency', evidence: ['usdrAgencyApprovesUpdates'] },
+      {
+        id: 'i-contracting-agency',
+        layer: 'information',
+        from: 'contracting',
+        to: 'agency',
+        evidence: ['usdrSignaturesSent', 'usdrExecuted'],
+      },
+      // "internal stakeholders" is mapped to the stakeholders and VMO unit.
+      {
+        id: 'd-vmo-purchasing',
+        layer: 'decision',
+        from: 'vmo',
+        to: 'purchasing',
+        basis: 'inferred',
+        roleMapping: ['usdrMaterialApproval'],
+        evidence: ['usdrMaterialApproval'],
+      },
+      {
+        id: 'i-purchasing-vendor',
+        layer: 'information',
+        from: 'purchasing',
+        to: 'vendor',
+        // Intent to Award names the Buyer notifying the vendor with no
+        // condition, so the situational cure period is not the only support.
+        evidence: ['usdrIntentToAward', 'usdrCurePeriod', 'usdrQaPosted'],
+        // "post vendor Q&A responses" does not name who receives the post.
+        inferred: ['usdrQaPosted'],
+        caveats: ['sooCurePeriod'],
+      },
+      // A bilateral negotiation names both parties but documents no direction
+      // from the vendor; the appeal names the Contract Specialist.
+      {
+        id: 'i-vendor-contracting',
+        layer: 'information',
+        from: 'vendor',
+        to: 'contracting',
+        basis: 'inferred',
+        roleMapping: ['usdrAppealPeriod'],
+        evidence: ['usdrContractNegotiations', 'usdrAppealPeriod'],
+      },
+    ],
+    // Fields replaced on model.js edges. `basis: null` clears a reconstruction.
+    changed: {
+      // "the agencies" in the finalizing card is mapped to the Business Owner.
+      'i-agency-purchasing': {
+        basis: null,
+        roleMapping: ['usdrFinalizingInputs'],
+        evidence: [
+          'usdrSolicitationInput',
+          'usdrSolicitationInputBuyer',
+          'usdrFinalizingInputs',
+          'usdrSolicitationReviewAgency',
+          'usdrAgencyVendorQa',
+        ],
+        inferred: ['usdrSolicitationReviewAgency', 'usdrAgencyVendorQa'],
+      },
+      // The map routes the agency's revised scope through ServiceHub into OIT
+      // ITD APPROVAL, which names "Agency's revised Scope of Work"; the
+      // optional heads-up is not the only recorded support.
+      'i-agency-itd': {
+        basis: null,
+        evidence: ['usdrInformallyInformed', 'usdrItdApproval', 'usdrAgencyApprovesUpdates'],
+        inferred: ['usdrAgencyApprovesUpdates'],
+        roleMapping: ['usdrItdApproval'],
+      },
+      'i-vendor-purchasing': { evidence: ['usdrProposals', 'usdrAppealPeriod'] },
+      // "approvals from agency" names the agency, not its Business Owner; the
+      // other passage's use was already our reconstruction.
+      'd-agency-purchasing': { basis: 'inferred', roleMapping: ['usdrMaterialApproval'] },
+      // Fetch letters "start relationship with agency", not its Business Owner.
+      'c-purchasing-agency': { roleMapping: ['usdrPurchasingFetch'] },
+      'c-contracting-agency': { roleMapping: ['usdrContactFetch'] },
+      // "sends … to OIT via ASR" is mapped to the Service Management Office.
+      'd-agency-smo': { roleMapping: ['usdrExpenditure'] },
+      // Its only passage names the OIT Contract Specialist, not OIT Contracting.
+      'd-contracting-vendor': { basis: 'inferred', roleMapping: ['usdrIntentToAward'] },
+      'd-vendor-contracting': { evidence: ['usdrSignatureVendor', 'usdrContractSigned'] },
+      'd-ed-contracting': { evidence: ['usdrSignatureEd', 'usdrContractSigned'] },
+      'd-osc-contracting': { evidence: ['usdrOscPreapproval', 'usdrOscReceived', 'usdrSignatureOsc', 'usdrContractSigned'] },
+      'i-contracting-osc': { evidence: ['usdrOscRequested', 'usdrSignaturesSent'] },
+      'i-contracting-vendor': { evidence: ['usdrContractNegotiations', 'usdrSignaturesSent'] },
+      'i-contracting-ed': { evidence: ['usdrSignaturesSent'] },
+    },
+  },
+
+  // The model's scope list shows item 3 of "What it does not map" as if it
+  // were covered; the view model separates the research's two lists.
+  // sooFewerSteps describes the SOO's own intervention table, not the research.
+  scope: {
+    covered: ['sooAttachmentNote', 'usdrBlueprintScope', 'usdrMapsList'],
+    notMapped: ['usdrExcludedStages', 'usdrNotMappedList'],
+  },
+};
+
+</script>
+<script>
+// The view model: the frozen model.js relationships with this gallery's
+// supplement applied. Pure functions, no DOM, so the node tests exercise
+// exactly what the page renders.
+(() => {
+  const model = globalThis.responseModel;
+  const supplement = globalThis.relationshipSupplement;
+  const R = model.relationships;
+
+  const evidence = { ...model.evidence, ...supplement.evidence };
+  const edges = [
+    ...R.edges.map((edge) => {
+      const change = supplement.edges.changed[edge.id];
+      return change ? { ...edge, ...change, origin: 'changed' } : edge;
+    }),
+    ...supplement.edges.added.map((edge) => ({ ...edge, origin: 'added' })),
+  ];
+
+  const roles = [R.agency, ...R.nodes];
+  const roleById = Object.fromEntries(roles.map((r) => [r.id, r]));
+  const edgeById = Object.fromEntries(edges.map((e) => [e.id, e]));
+  const order = Object.fromEntries(roles.map((r, i) => [r.id, i]));
+
+  // `basis: 'inferred'` is a wholly reconstructed edge; `inferred` lists the
+  // passages whose use on an otherwise recorded edge is our reconstruction.
+  function basisOf(edge) {
+    if (edge.arrangement === 'proposed') return 'proposed';
+    if (edge.basis === 'inferred') return 'reconstructed';
+    if (edge.inferred?.length) return 'partlyReconstructed';
+    return 'recorded';
+  }
+
+  // Readers see one category for everything that depends on our reading; the
+  // detail panel still tells a wholly reconstructed relationship from a mixed one.
+  const shownBasis = (edge) => ({ reconstructed: 'interpretation', partlyReconstructed: 'interpretation' })[basisOf(edge)] ?? basisOf(edge);
+
+  const passageQualifiers = (id) => evidence[id].qualifiers ?? supplement.passageQualifiers[id] ?? [];
+  // Tags for a passage as one edge uses it: its own qualifiers plus role
+  // mapping where this edge maps the party the passage names.
+  const passageTags = (edge, id) => [...(edge.roleMapping?.includes(id) ? ['roleMapping'] : []), ...passageQualifiers(id)];
+
+  // Qualifiers carried by any cited source activity of a relationship. They
+  // describe those activities, not the relationship as a whole.
+  const includedQualifiers = (edge) => [...new Set(edge.evidence.flatMap((id) => passageTags(edge, id)))];
+
+  const connectorsOf = (edge) => supplement.connectors[edge.id] ?? [];
+  const struckWords = (id) => supplement.markup[id]?.struck ?? [];
+
+  const titleIsMapped = (roleId, title) => supplement.roleTitleMapping[roleId]?.includes(title) ?? false;
+
+  function relationOf(edge, roleId) {
+    if (edge.from === roleId) return `${edge.layer}Out`;
+    if (edge.to === roleId) return `${edge.layer}In`;
+    return null;
+  }
+
+  const inLayer = (layer) => (edge) => layer === 'all' || edge.layer === layer;
+  const byLayerThenPartner = (roleId) => (a, b) =>
+    R.layers.indexOf(a.layer) - R.layers.indexOf(b.layer) ||
+    order[a.from === roleId ? a.to : a.from] - order[b.from === roleId ? b.to : b.from];
+
+  function edgesOf(roleId, layer = 'all') {
+    return edges.filter((e) => (e.from === roleId || e.to === roleId) && inLayer(layer)(e)).sort(byLayerThenPartner(roleId));
+  }
+
+  // Communication edges all end at the agency, so a role has a route out and
+  // the agency has routes in; the other direction does not apply.
+  function relationsFor(roleId, layer = 'all') {
+    const all = ['decisionOut', 'decisionIn', 'informationOut', 'informationIn', roleId === 'agency' ? 'communicationIn' : 'communicationOut'];
+    return all.filter((key) => layer === 'all' || key.startsWith(layer));
+  }
+
+  function edgesIn(roleId, relation) {
+    return edges.filter((e) => relationOf(e, roleId) === relation).sort(byLayerThenPartner(roleId));
+  }
+
+  // Roles grouped by modeled relationship distance from one role, counting
+  // relationships of the chosen type in either direction: [[root], direct
+  // partners, roles two connections away, ...]. Distance only; it is not a
+  // procurement sequence.
+  function connectionLevels(roleId, layer = 'all') {
+    const levels = [[roleId]];
+    const seen = new Set(levels[0]);
+    while (true) {
+      const next = [];
+      for (const id of levels.at(-1)) {
+        for (const edge of edgesOf(id, layer)) {
+          const partner = edge.from === id ? edge.to : edge.from;
+          if (seen.has(partner)) continue;
+          seen.add(partner);
+          next.push(partner);
+        }
+      }
+      if (!next.length) return levels;
+      levels.push(next);
+    }
+  }
+
+  const blackHoleSteps = (roleId) => R.blackHoles.steps.filter((s) => s.node === roleId);
+
+  function gapOf(roleId) {
+    const gap = R.gaps.find((g) => g.node === roleId);
+    return gap && { ...gap, kind: gap.route === 'recorded' ? 'despiteRoute' : 'noRoute' };
+  }
+
+  globalThis.relationshipGraph = {
+    layers: R.layers,
+    roles,
+    edges,
+    documents: model.documents,
+    statements: model.statements,
+    blackHoles: R.blackHoles,
+    evidence: (id) => evidence[id],
+    role: (id) => roleById[id],
+    edge: (id) => edgeById[id],
+    order: (id) => order[id],
+    basisOf,
+    shownBasis,
+    passageQualifiers,
+    passageTags,
+    includedQualifiers,
+    connectorsOf,
+    struckWords,
+    titleIsMapped,
+    relationOf,
+    edgesOf,
+    relationsFor,
+    edgesIn,
+    connectionLevels,
+    blackHoleSteps,
+    gapOf,
+  };
+})();
+
+</script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <iframe id="acceptance-frame" title="Visualize acceptance criteria" hidden srcdoc="<!doctype html>
+<html lang=&quot;en&quot;>
+<head>
+  <meta charset=&quot;utf-8&quot;>
+  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  <title>Visualize acceptance criteria</title>
+  <style>
+.workspace-nav {
+  /* The shared tabs keep their colors when the host page changes. */
+  --text: light-dark(#0f2140, #e6ebf3);
+  --muted: light-dark(#4b5b75, #a8b5c9);
+  --accent: light-dark(#1d5bb8, #8db6ff);
+  --border: light-dark(#d5dce6, #2b3d5c);
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.workspace-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font: 600 15px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  text-align: center;
+  text-decoration: none;
+}
+
+.workspace-nav a:hover {
+  color: var(--text);
+}
+
+.workspace-nav a[aria-current='page'] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.workspace-nav a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .workspace-nav a {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+}
+
+@media (forced-colors: active) {
+  .workspace-nav a[aria-current='page'] {
+    border-bottom-color: Highlight;
+  }
+}
+
+</style>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --background: light-dark(#f4f6fa, #0e1728);
+      --surface: light-dark(#ffffff, #172237);
+      --canvas: light-dark(#eaf0f8, #111c2e);
+      --text: light-dark(#17243d, #edf1fa);
+      --muted: light-dark(#52627c, #b1bed2);
+      --border: light-dark(#ccd5e3, #435471);
+      --accent: light-dark(#2455ad, #9bbdff);
+      --wash: light-dark(#eaf1ff, #263c61);
+      --mark: light-dark(#ffedb0, #594719);
+      --mark-text: light-dark(#17243d, #fff1bd);
+      --check-text: light-dark(#ffffff, #14213b);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--background); color: var(--text); font: 400 15px/1.55 system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, a:focus-visible, [tabindex=&quot;-1&quot;]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    h1, h2, h3, p { margin: 0; }
+    .page { max-width: 1440px; margin: auto; padding: 28px 24px 48px; }
+    .brand { margin-bottom: 8px; color: var(--muted); font-size: 13px; font-weight: 600; }
+    h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.2; letter-spacing: -.035em; font-weight: 650; }
+    .intro { margin-top: 10px; color: var(--muted); max-width: 88ch; }
+    .demo-note { margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .workbench { display: grid; grid-template-columns: minmax(0, 1fr) 390px; align-items: start; gap: 34px; margin-top: 32px; }
+    .preview { position: sticky; top: 20px; min-width: 0; }
+    .panel-title { font-size: 15px; font-weight: 650; }
+    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 40px; margin-bottom: 12px; }
+    .return { padding: 5px 10px; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+    .mail-canvas { background: var(--canvas); padding: 30px; border: 1px solid var(--border); border-radius: 14px; }
+    .mail { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; box-shadow: 0 8px 28px light-dark(#17243d0d, #00000026); overflow-wrap: anywhere; }
+    .mail-meta { padding: 18px 24px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    .mail-meta strong { color: var(--text); font-weight: 600; }
+    .mail-content { padding: 26px 28px 30px; }
+    .subject { font-size: 22px; line-height: 1.3; letter-spacing: -.015em; font-weight: 650; }
+    .stage { margin-top: 5px; font-weight: 550; }
+    .reference { margin-top: 8px; color: var(--muted); font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .mail-body { border-top: 1px solid var(--border); margin-top: 22px; padding-top: 22px; font-size: 16px; line-height: 1.7; }
+    .mail-body p + p { margin-top: 18px; }
+    [data-email-target] { display: inline; margin: 0; padding: 0; border: 0; border-radius: 3px; background: transparent; color: inherit; font: inherit; line-height: inherit; text-align: inherit; transition: background-color 140ms ease; }
+    [data-email-target]:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+    [data-email-target].is-highlighted { background: var(--mark); color: var(--mark-text); box-shadow: 0 0 0 3px var(--mark); }
+    .context { margin-top: 18px; font-size: 13px; color: var(--muted); }
+    .context summary { cursor: pointer; padding: 6px 0; }
+    .context dl { margin: 12px 0 0; padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .context dt { text-transform: uppercase; font-size: 11px; letter-spacing: .07em; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+    .context dd { margin: 0 0 14px; }
+    .context dd:last-child { margin-bottom: 0; }
+    .context cite { display: block; font-style: normal; margin-top: 5px; }
+    .criteria { min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 20px 16px 16px; }
+    .criteria > h2 { padding-inline: 8px; margin-bottom: 8px; font-size: 18px; letter-spacing: -.01em; }
+    .criteria-note { padding-inline: 8px; margin-bottom: 22px; color: var(--muted); font-size: 13px; }
+    .criteria-group + .criteria-group { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .criteria-group h3 { margin: 0 8px 10px; color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
+    .criteria-list { list-style: none; margin: 0; padding: 0; }
+    .criterion + .criterion { margin-top: 3px; }
+    .criterion-button { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: start; width: 100%; padding: 10px 8px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); text-align: left; font-size: 13px; line-height: 1.45; }
+    .criterion-button:hover { background: var(--background); }
+    .criterion-button[aria-current=&quot;true&quot;] { background: var(--wash); border-color: var(--accent); }
+    .criterion-button[aria-current=&quot;true&quot;] .check { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .check { display: grid; place-items: center; width: 17px; height: 17px; margin-top: 1px; border: 1px solid var(--muted); border-radius: 3px; font-size: 12px; font-weight: 700; }
+    [data-status=&quot;done&quot;] .check { background: var(--accent); border-color: var(--accent); color: var(--check-text); }
+    .criterion-state { margin-top: 1px; font-size: 10px; letter-spacing: .035em; color: var(--muted); white-space: nowrap; text-transform: uppercase; }
+    .commit-tooltip { position: fixed; z-index: 5; width: 350px; max-width: calc(100vw - 32px); padding: 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 12px 36px light-dark(#17243d26, #00000066); color: var(--text); overflow-wrap: anywhere; }
+    .commit-tooltip[hidden] { display: none; }
+    .commit-label { font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .commit-hash { display: inline-block; margin-top: 10px; font: 600 14px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--accent); }
+    .commit-message { margin-top: 8px; font-size: 14px; font-weight: 600; line-height: 1.45; }
+    .commit-tooltip dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 14px 0 0; font-size: 12px; }
+    .commit-tooltip dt { color: var(--muted); }
+    .commit-tooltip dd { margin: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    @media (max-width: 1000px) {
+      .page { padding-bottom: 36px; }
+      .workbench { grid-template-columns: minmax(0, 1fr) 330px; gap: 22px; }
+      .mail-canvas { padding: 16px; }
+      .mail-content { padding: 22px; }
+    }
+    @media (max-width: 760px) {
+      .page { padding-bottom: 32px; }
+      .workbench { grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 22px; }
+      .preview { position: static; }
+      .mail-canvas { padding: 12px; border-radius: 10px; }
+      .mail-content { padding: 22px 18px; }
+      .mail-meta { padding: 14px 18px; }
+      .subject { font-size: 20px; }
+      .criteria { padding: 18px 12px 12px; }
+    }
+    @media (max-width: 600px) { .page { padding-inline: 16px; } }
+    @media (prefers-reduced-motion: reduce) { [data-email-target] { transition: none; } }
+    @media (forced-colors: active) {
+      .criterion-button[aria-current=&quot;true&quot;] { outline: 2px solid Highlight; }
+      [data-status=&quot;done&quot;] .check { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+      [data-email-target].is-highlighted { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+    }
+  </style>
+</head>
+<body>
+<main class=&quot;page&quot;>
+  <nav class=&quot;workspace-nav&quot; aria-label=&quot;Procurement prototypes&quot;>
+    <a href=&quot;#explore&quot; target=&quot;_top&quot;>Explore procurement relationships</a>
+    <a href=&quot;#criteria&quot; target=&quot;_top&quot; aria-current=&quot;page&quot;>Visualize acceptance criteria</a>
+  </nav>
+  <header>
+    <p class=&quot;brand&quot;>Procurement · Working prototype</p>
+    <h1>Visualize acceptance criteria</h1>
+    <p class=&quot;intro&quot; id=&quot;vac-introduction&quot;>The Statement of Objectives (SOO) describes procurement communication pain points: uninformative emails, missed updates, missing contacts, and lost visibility during handoffs. We’ve analyzed those pain points and translated them into acceptance criteria. This view visualizes progress against those criteria by linking each completed item to its email content or implementation evidence.</p>
+    <p class=&quot;demo-note&quot;>Illustrated email. Demo commits and code-completion states are fictional.</p>
+  </header>
+
+  <div class=&quot;workbench&quot;>
+    <section class=&quot;preview&quot; aria-labelledby=&quot;preview-heading&quot;>
+      <div class=&quot;preview-toolbar&quot;>
+        <h2 class=&quot;panel-title&quot; id=&quot;preview-heading&quot;>Email preview</h2>
+        <button class=&quot;return&quot; id=&quot;criterion-return&quot; type=&quot;button&quot; hidden>Back to criterion</button>
+      </div>
+      <div class=&quot;mail-canvas&quot;>
+        <article class=&quot;mail&quot; aria-labelledby=&quot;ac-title&quot;>
+          <div class=&quot;mail-meta&quot;><strong>From</strong> Procurement updates<br><strong>To</strong> Agency business owner</div>
+          <div class=&quot;mail-content&quot;>
+            <h3 class=&quot;subject&quot;><button type=&quot;button&quot; id=&quot;ac-title&quot; data-email-target>Field inspection scheduling</button></h3>
+            <p class=&quot;stage&quot;>Finance approval received</p>
+            <p class=&quot;reference&quot;><button type=&quot;button&quot; id=&quot;ac-reference&quot; data-email-target>ER-DEMO-1042-1</button></p>
+            <div class=&quot;mail-body&quot;>
+              <p>OIT Finance has approved your request and passed it to Purchasing. <button type=&quot;button&quot; id=&quot;ac-authorization&quot; data-email-target>Your authorization for quote version 2 is recorded.</button></p>
+              <p><button type=&quot;button&quot; id=&quot;ac-next-step&quot; data-email-target>OIT Purchasing is assigning a buyer.</button></p>
+              <p><button type=&quot;button&quot; id=&quot;ac-contact&quot; data-email-target>Casey Diaz remains your contact.</button> <button type=&quot;button&quot; id=&quot;ac-next-update&quot; data-email-target>Your next update is due October 20.</button></p>
+              <p><button type=&quot;button&quot; id=&quot;ac-agency-action&quot; data-email-target>No agency action is due at this handoff. Purchasing will confirm the next task for your team once a buyer is assigned.</button></p>
+            </div>
+          </div>
+        </article>
+      </div>
+      <details class=&quot;context&quot;>
+        <summary>Source context</summary>
+        <dl>
+          <dt>Pain point</dt>
+          <dd>Buyer assignment is recorded without the assignment logic. Fetch letters are not always sent, and no contact is assigned.<cite>SOO · Purchasing · page 5</cite></dd>
+          <dt>SOO expectation</dt>
+          <dd>Automatically send the stage email even without a fetch letter. Record the assigned buyer in the manual tracker and OnBase.<cite>SOO · Purchasing · page 5</cite></dd>
+          <dt>To confirm</dt>
+          <dd>Who owns buyer assignment, and how will the OnBase record be read and updated?</dd>
+        </dl>
+      </details>
+    </section>
+
+    <aside class=&quot;criteria&quot; aria-labelledby=&quot;criteria-heading&quot;>
+      <h2 id=&quot;criteria-heading&quot;>Acceptance criteria</h2>
+      <p class=&quot;criteria-note&quot;>Click email text or a criterion to highlight the match. Hover over a demo commit row, or focus it with the keyboard, to inspect the commit.</p>
+      <div id=&quot;criteria-groups&quot;></div>
+    </aside>
+  </div>
+  <p class=&quot;sr-only&quot; role=&quot;status&quot; id=&quot;acceptance-status&quot;></p>
+</main>
+<script>
+(() => {
+  const commits = {
+    milestones: ['e7a3c19', '2026-09-27', 'Maya Patel', 'feat(notifications): send intake and milestone notices'],
+    templates: ['0b84fa2', '2026-09-28', 'Alex Kim', 'feat(notifications): render updates from approved stage templates'],
+    delivery: ['c9f281d', '2026-09-28', 'Sam Rivera', 'feat(notifications): persist queued, sent, failed and bounced states'],
+    retries: ['a143d8e', '2026-09-28', 'Maya Patel', 'feat(notifications): queue owned retries for failed deliveries'],
+    replies: ['7de24b0', '2026-09-29', 'Alex Kim', 'feat(notifications): attach agency replies to the e-req conversation'],
+    approvals: ['2f6ac81', '2026-09-29', 'Sam Rivera', 'feat(procurement): link approval evidence to quote revisions'],
+    matching: ['9c15ea4', '2026-09-29', 'Maya Patel', 'fix(procurement): reject ambiguous event-to-case matches'],
+    recipients: ['4ab829f', '2026-09-29', 'Alex Kim', 'feat(notifications): enforce agency audiences and redact restricted fields'],
+    duplicates: ['b83d2f7', '2026-09-30', 'Sam Rivera', 'fix(notifications): block duplicate and conflicting stage notices'],
+  };
+  const groups = [
+    ['Message content', [
+      { id: 'title', label: 'Title and e-req number', kind: 'ui', targets: ['ac-title', 'ac-reference'] },
+      { id: 'stage', label: 'Current stage and elapsed time', kind: 'ui' },
+      { id: 'buyer', label: 'Assigned buyer and current task owner', kind: 'ui' },
+      { id: 'contact', label: 'Agency contact', kind: 'ui', targets: ['ac-contact'] },
+      { id: 'next-step', label: 'Next step and agency action', kind: 'ui', targets: ['ac-next-step', 'ac-agency-action'] },
+      { id: 'next-update', label: 'Next promised update', kind: 'ui', targets: ['ac-next-update'] },
+      { id: 'escalation', label: 'Escalation route', kind: 'ui' },
+      { id: 'authorization', label: 'Exact quote or scope version', kind: 'ui', targets: ['ac-authorization'] },
+      { id: 'executed', label: 'Executed documents when complete', kind: 'ui' },
+    ]],
+    ['Sending and replies', [
+      { id: 'milestones', label: 'Intake and milestone notices', kind: 'code', commit: 'milestones' },
+      { id: 'ownership', label: 'Stage and ownership changes', kind: 'code' },
+      { id: 'waiting', label: 'Updates during long waits', kind: 'code' },
+      { id: 'templates', label: 'Approved templates', kind: 'code', commit: 'templates' },
+      { id: 'delivery', label: 'Queued, sent, failed and bounced states', kind: 'code', commit: 'delivery' },
+      { id: 'reading', label: 'Delivery kept separate from reading', kind: 'code' },
+      { id: 'retries', label: 'Owned failures and retry', kind: 'code', commit: 'retries' },
+      { id: 'delivery-test', label: 'Delivery tested before unattended mail', kind: 'code' },
+      { id: 'replies', label: 'Replies linked to the case', kind: 'code', commit: 'replies' },
+      { id: 'cadence', label: 'Agreed cadence and exceptions', kind: 'code' },
+    ]],
+    ['Evidence and access', [
+      { id: 'source', label: 'Source and last confirmation', kind: 'ui' },
+      { id: 'approvals', label: 'Approval backed by evidence', kind: 'code', commit: 'approvals' },
+      { id: 'matching', label: 'Reliable case matching', kind: 'code', commit: 'matching' },
+      { id: 'onbase', label: 'Buyer recorded in tracker and OnBase', kind: 'code' },
+      { id: 'sender', label: 'Approved sender and mailbox access', kind: 'code' },
+      { id: 'recipients', label: 'Authorized recipients and restricted detail', kind: 'code', commit: 'recipients' },
+      { id: 'duplicates', label: 'No duplicate or conflicting notices', kind: 'code', commit: 'duplicates' },
+      { id: 'accessibility', label: 'Accessible content and documents', kind: 'code' },
+      { id: 'live-scope', label: 'Live email scope agreed with OIT', kind: 'code' },
+    ]],
+  ];
+  const items = new Map(groups.flatMap((group) => group[1]).map((item) => [item.id, item]));
+  const list = document.getElementById('criteria-groups');
+  const status = document.getElementById('acceptance-status');
+  const returnButton = document.getElementById('criterion-return');
+  let activeId = null;
+  let hoveredId = null;
+  let hideTimer;
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function element(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text) el.textContent = text;
+    return el;
+  }
+  function commitCard(item) {
+    const [hash, date, author, message] = commits[item.commit];
+    const card = element('div', 'commit-tooltip');
+    card.id = 'commit-' + item.id;
+    card.setAttribute('role', 'tooltip');
+    card.dataset.commit = hash;
+    card.hidden = true;
+    card.append(element('p', 'commit-label', 'Fictional commit · demo evidence'), element('code', 'commit-hash', hash), element('p', 'commit-message', message));
+    const details = element('dl');
+    for (const pair of [['Date', date], ['Author', author]]) details.append(element('dt', '', pair[0]), element('dd', '', pair[1]));
+    card.append(details);
+    return card;
+  }
+  for (const [name, entries] of groups) {
+    const section = element('section', 'criteria-group');
+    const heading = element('h3', '', name);
+    const ul = element('ul', 'criteria-list');
+    section.append(heading, ul);
+    for (const item of entries) {
+      const done = Boolean(item.targets || item.commit);
+      const row = element('li', 'criterion');
+      row.dataset.criterion = item.id;
+      row.dataset.status = done ? 'done' : 'open';
+      row.dataset.kind = item.kind;
+      if (item.targets) row.dataset.highlights = item.targets.join(' ');
+      const button = element('button', 'criterion-button');
+      button.type = 'button';
+      button.id = 'criterion-' + item.id;
+      if (item.targets) button.setAttribute('aria-controls', item.targets.join(' '));
+      const check = element('span', 'check', done ? '✓' : '');
+      check.setAttribute('aria-hidden', 'true');
+      const badge = element('span', 'criterion-state', done ? (item.kind === 'ui' ? 'In email' : 'Demo commit') : 'Open');
+      button.setAttribute('aria-label', item.label + ', ' + badge.textContent + (done ? ', complete in this example' : ''));
+      button.append(check, element('span', '', item.label), badge);
+      button.addEventListener('focus', () => {
+        activate(item.id);
+        if (item.commit &amp;&amp; button.matches(':focus-visible')) showCommit(item.id);
+      });
+      button.addEventListener('click', () => activate(item.id, true));
+      row.append(button);
+      if (item.commit) {
+        row.append(commitCard(item));
+        row.addEventListener('pointerenter', () => {
+          clearTimeout(hideTimer);
+        });
+        // Scrolling a row under a stationary pointer is not a request to preview it.
+        row.addEventListener('pointermove', (event) => {
+          if (event.pointerType === 'touch' || hoveredId === item.id) return;
+          hoveredId = item.id;
+          showCommit(item.id);
+        });
+        row.addEventListener('pointerleave', () => {
+          if (hoveredId === item.id) hoveredId = null;
+          // Keep the tooltip reachable across the gap between it and its row.
+          hideTimer = setTimeout(() => {
+            if (!button.matches(':focus-visible')) hideCommit(item.id);
+          }, 150);
+        });
+        button.addEventListener('blur', () => {
+          if (!row.matches(':hover')) hideCommit(item.id);
+        });
+      }
+      ul.append(row);
+    }
+    list.append(section);
+  }
+  for (const item of items.values()) {
+    for (const id of item.targets ?? []) {
+      const target = document.getElementById(id);
+      target.setAttribute('aria-controls', 'criterion-' + item.id);
+      target.addEventListener('click', () => {
+        activate(item.id);
+        const button = document.getElementById('criterion-' + item.id);
+        status.textContent = 'Highlighted acceptance criterion: ' + item.label + '.';
+        const box = button.getBoundingClientRect();
+        if (box.top < 0 || box.bottom > innerHeight) button.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
+        button.focus({ preventScroll: true });
+      });
+    }
+  }
+  function placeTooltip(card, button) {
+    const box = button.getBoundingClientRect();
+    const width = card.offsetWidth;
+    const height = card.offsetHeight;
+    const beside = box.left >= width + 32;
+    const left = beside ? box.left - width - 12 : Math.max(16, Math.min(box.left, innerWidth - width - 16));
+    const below = box.bottom + 10;
+    const top = beside ? Math.max(16, Math.min(box.top, innerHeight - height - 16)) : below + height <= innerHeight - 16 ? below : Math.max(16, box.top - height - 10);
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+  }
+  function hideCommit(id) {
+    clearTimeout(hideTimer);
+    const cards = id ? [document.getElementById('commit-' + id)] : document.querySelectorAll('[data-commit]');
+    cards.forEach((card) => {
+      card.hidden = true;
+      card.closest('[data-criterion]').querySelector('button').removeAttribute('aria-describedby');
+    });
+  }
+  function showCommit(id) {
+    hideCommit();
+    const button = document.getElementById('criterion-' + id);
+    const card = document.getElementById('commit-' + id);
+    card.hidden = false;
+    button.setAttribute('aria-describedby', card.id);
+    placeTooltip(card, button);
+  }
+  function clearSelection() {
+    document.querySelectorAll('.is-highlighted').forEach((el) => el.classList.remove('is-highlighted'));
+    document.querySelectorAll('.criterion-button').forEach((el) => {
+      el.removeAttribute('aria-current');
+    });
+    returnButton.hidden = true;
+    activeId = null;
+  }
+  function clear() {
+    hideCommit();
+    clearSelection();
+  }
+  function activate(id, reveal = false) {
+    if (id !== activeId) {
+      clearSelection();
+      const card = document.querySelector('[data-commit]:not([hidden])');
+      if (card?.id !== 'commit-' + id) hideCommit();
+    }
+    activeId = id;
+    const item = items.get(id);
+    const row = document.querySelector('[data-criterion=&quot;' + id + '&quot;]');
+    const button = row.querySelector('button');
+    button.setAttribute('aria-current', 'true');
+    let announcement;
+    if (item.targets) {
+      const targets = item.targets.map((target) => document.getElementById(target));
+      targets.forEach((target) => target.classList.add('is-highlighted'));
+      announcement = 'Highlighted ' + item.label + ' in the email.';
+      if (reveal) {
+        const box = targets[0].getBoundingClientRect();
+        if (box.top < 0 || box.bottom > innerHeight) {
+          returnButton.hidden = false;
+          targets[0].scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
+          targets[0].focus({ preventScroll: true });
+        }
+      }
+    } else if (item.commit) {
+      announcement = item.label + ' has fictional demo evidence. Pointer hover or keyboard focus shows the commit details.';
+    } else {
+      announcement = item.label + ' is open. No implementation evidence yet.';
+    }
+    if (reveal) status.textContent = announcement;
+  }
+  returnButton.addEventListener('click', () => {
+    const button = document.getElementById('criterion-' + activeId);
+    returnButton.hidden = true;
+    button.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
+    button.focus({ preventScroll: true });
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') clear();
+  });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.criterion') &amp;&amp; event.target !== returnButton &amp;&amp; !event.target.closest('[data-email-target]')) clear();
+  });
+  window.addEventListener('scroll', () => {
+    const card = document.querySelector('[data-commit]:not([hidden])');
+    if (card) placeTooltip(card, card.closest('[data-criterion]').querySelector('button'));
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    const card = document.querySelector('[data-commit]:not([hidden])');
+    if (card) placeTooltip(card, card.closest('[data-criterion]').querySelector('button'));
+  });
+  activate('title');
+})();
+</script>
+</body>
+</html>
+"></iframe>
+<script>
+(() => {
+  const pages = { '#explore': 'explore', '#criteria': 'criteria' };
+  const frame = document.getElementById('acceptance-frame');
+  const app = document.getElementById('app');
+  let exploreHash = '';
+  let exploreTitle = '';
+  function show(page, { focus = true } = {}) {
+    const chosen = page === 'criteria';
+    frame.hidden = !chosen;
+    app.inert = chosen;
+    document.documentElement.classList.toggle('is-criteria', chosen);
+    document.title = chosen ? frame.title : exploreTitle;
+    // Explore's chart measures its frame, which may have changed while covered.
+    if (!chosen) dispatchEvent(new Event('resize'));
+    // The reader arrives on the chosen page's own current tab.
+    const doc = chosen ? frame.contentDocument : document;
+    if (focus) doc?.querySelector('.workspace-nav a[aria-current="page"]')?.focus();
+  }
+  addEventListener('hashchange', (event) => {
+    const page = pages[location.hash];
+    if (!page) return;
+    event.stopImmediatePropagation();
+    const before = new URL(event.oldURL).hash;
+    if (page === 'criteria') {
+      if (!pages[before]) exploreHash = before;
+    } else {
+      history.replaceState(null, '', exploreHash || location.pathname);
+    }
+    show(page);
+  });
+  globalThis.prototypePages = {
+    initial: pages[location.hash] ?? 'explore',
+    start() {
+      exploreTitle = document.title;
+      // Explore's tabs point at this file's own fragments.
+      for (const [href, hash] of [['index.html', '#explore'], ['email/notification-mockup.html', '#criteria']]) {
+        const link = document.querySelector(`.workspace-nav a[href="${href}"]`);
+        if (!link) throw new Error(`Explore has no tab for ${href}`);
+        link.setAttribute('href', hash);
+      }
+      if (this.initial === 'criteria') {
+        exploreHash = location.hash;
+        history.replaceState(null, '', '#criteria');
+        show('criteria', { focus: false });
+      }
+    },
+  };
+})();
+</script>
+<script>
+(() => {
+  const G = globalThis.relationshipGraph;
+  const copy = globalThis.relationshipCopy;
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const VIEWS = ['orbit', 'matrix'];
+  const LAYER_CHOICES = ['all', ...G.layers];
+  const BASES = ['recorded', 'interpretation', 'proposed'];
+
+  // Every reader-facing string comes from copy.js. A missing key throws, so a
+  // gap in the copy fails loudly instead of rendering a key or stand-in text.
+  function t(path, vars = {}) {
+    const value = path.split('.').reduce((node, key) => node?.[key], copy);
+    if (typeof value !== 'string' || !value.trim()) throw new Error(`Missing copy: ${path}`);
+    return value.replace(/\{(\w+)\}/g, (_, name) => {
+      if (!(name in vars)) throw new Error(`Missing value {${name}} for ${path}`);
+      return String(vars[name]);
+    });
+  }
+
+  function build(el, props, children) {
+    for (const [key, value] of Object.entries(props ?? {})) {
+      if (value == null || value === false) continue;
+      if (key === 'text') el.textContent = value;
+      else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+      else el.setAttribute(key, value === true ? '' : String(value));
+    }
+    el.append(...children.flat(Infinity).filter((child) => child != null && child !== false && child !== 0));
+    return el;
+  }
+  const h = (tag, props, ...children) => build(document.createElement(tag), props, children);
+  const s = (tag, props, ...children) => build(document.createElementNS(SVG_NS, tag), props, children);
+
+  const state = {
+    view: 'orbit',
+    role: 'agency',
+    layer: 'all',
+    selection: null,
+    levels: 1,
+    includeReconstructed: false,
+  };
+
+  const fullName = (id) => G.role(id).name;
+  const shortName = (id) => t(`roleLabels.${id}`);
+  const isProposedRole = (id) => G.role(id).arrangement === 'proposed';
+  const partnerOf = (edge, id) => (edge.from === id ? edge.to : edge.from);
+  const edgeLabel = (edge) => t(`edge.${edge.layer}`, { from: fullName(edge.from), to: fullName(edge.to) });
+  // Qualifiers belong to cited source activities; a relationship only
+  // reports that it includes qualified ones, and which.
+  const includesText = (edge) => {
+    const list = G.includedQualifiers(edge).map((q) => t(`qualifier.${q}`));
+    return list.length ? t('qualifier.includes', { list: list.join(', ') }) : null;
+  };
+  const edgeName = (edge) => [edgeLabel(edge), t(`basis.${G.shownBasis(edge)}`), edge.signature && t('basis.signature'), includesText(edge)].filter(Boolean).join(', ');
+  const qualifierTags = (edge) => includesText(edge) && tag('qualifier-includes', includesText(edge));
+  const roleName = (id) => [fullName(id), isProposedRole(id) && t('basis.proposed')].filter(Boolean).join(', ');
+  const markCount = (id) => G.blackHoleSteps(id).length;
+  const roleNameWithMarks = (id) => (markCount(id) > 0 ? t('blackHole.count', { role: roleName(id), count: markCount(id) }) : roleName(id));
+  const isSelected = (kind, id) => state.selection?.kind === kind && state.selection.id === id;
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- location ----------------------------------------------------------
+
+  function readHash() {
+    const params = new URLSearchParams(location.hash.slice(1));
+    if (VIEWS.includes(params.get('view'))) state.view = params.get('view');
+    if (G.role(params.get('role'))) state.role = params.get('role');
+    if (LAYER_CHOICES.includes(params.get('layer'))) state.layer = params.get('layer');
+    state.includeReconstructed = params.get('reconstructed') === '1';
+    const levels = Number(params.get('levels'));
+    state.levels = Number.isInteger(levels) && levels > 1 ? levels : 1;
+    const edge = G.edge(params.get('edge'));
+    if (edge) state.selection = { kind: 'edge', id: edge.id };
+    else if (G.role(params.get('role'))) state.selection = { kind: 'role', id: state.role };
+  }
+
+  function writeHash() {
+    const params = new URLSearchParams({ view: state.view, layer: state.layer });
+    if (state.selection) params.set('role', state.role);
+    if (state.levels !== 1) params.set('levels', state.levels);
+    if (state.includeReconstructed) params.set('reconstructed', '1');
+    if (state.selection?.kind === 'edge') params.set('edge', state.selection.id);
+    history.replaceState(null, '', `#${params}`);
+  }
+
+  // ---- shared pieces -----------------------------------------------------
+
+  function shapePath(layer, cx, cy, r) {
+    if (layer === 'decision') return s('rect', { x: cx - r * 0.88, y: cy - r * 0.88, width: r * 1.76, height: r * 1.76, rx: 1.5 });
+    if (layer === 'information') return s('circle', { cx, cy, r });
+    return s('path', { d: `M${cx} ${cy - r * 1.08}L${cx + r * 1.05} ${cy + r * 0.82}H${cx - r * 1.05}Z` });
+  }
+
+  // A small badge marks a relationship that cites at least one qualified source
+  // activity; the qualifiers are in the name, tooltip and detail panel.
+  const qualifiedBadge = (x, y) => s('circle', { class: 'qualified-badge', cx: x, cy: y, r: 3.2 });
+
+  const shapeIcon = (layer, basis = 'recorded', qualified = false) =>
+    s(
+      'svg',
+      { class: `shape shape--${basis}`, 'data-layer': layer, viewBox: '0 0 20 20', width: 20, height: 20, 'aria-hidden': 'true', focusable: 'false' },
+      shapePath(layer, 10, 10, 6.5),
+      qualified && qualifiedBadge(17, 3),
+    );
+  const isQualified = (edge) => G.includedQualifiers(edge).length > 0;
+
+  const tag = (kind, text) => h('span', { class: `tag tag--${kind}`, text });
+  // Tables show a dash with the phrase for assistive technology; roomier
+  // places show the phrase itself.
+  const absence = (key = 'absence.notRecorded', { visible = false } = {}) =>
+    visible
+      ? h('span', { class: 'absence', text: t(key) })
+      : h('span', { class: 'absence' }, h('span', { 'aria-hidden': 'true', text: '–' }), h('span', { class: 'sr-only', text: t(key) }));
+
+  function passage(id, { reconstructed = false, tags = G.passageQualifiers(id) } = {}) {
+    const item = G.evidence(id);
+    const notes = [t('citation.page', { document: G.documents[item.doc].name, page: item.page })];
+    if (item.column) notes.push(t('citation.column', { column: item.column }));
+    if (item.row) notes.push(t('citation.row', { row: item.row }));
+    return h(
+      'figure',
+      { class: 'passage', 'data-evidence': id },
+      reconstructed && tag('interpretation', t('basis.reconstructedPassage')),
+      tags.map((q) => tag(`qualifier-${q}`, t(`qualifier.${q}`))),
+      tags.map((q) => h('p', { class: 'passage__note', 'data-qualifier': q, text: t(`qualifierNote.${q}`) })),
+      h('blockquote', {}, quotationWithMarkup(id, item.quotation)),
+      h('figcaption', { text: notes.join(' · ') }),
+    );
+  }
+
+  // Words the source strikes through render struck; the text itself is the
+  // quotation exactly as extracted and checked.
+  function quotationWithMarkup(id, quotation) {
+    const struck = G.struckWords(id);
+    if (!struck.length) return quotation;
+    const pattern = new RegExp(`(${struck.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`);
+    return quotation.split(pattern).map((part) => (struck.includes(part) ? h('del', { text: part }) : part));
+  }
+
+  const connector = (cards) =>
+    h(
+      'figure',
+      { class: 'passage passage--connector', 'data-connector': cards.join(' | ') },
+      tag('connector', t('evidence.connector')),
+      h('blockquote', { text: cards.join(' → ') }),
+      h('figcaption', { text: t('citation.page', { document: G.documents.usdr.name, page: 8 }) }),
+    );
+
+  const statement = (id) =>
+    h(
+      'figure',
+      { class: 'passage passage--plan', 'data-statement': id },
+      h('blockquote', { text: G.statements[id].text }),
+      h('figcaption', { text: t('evidence.planOrigin') }),
+    );
+
+  function activateOnKey(event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    event.currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }
+
+  function wrapWords(text, max) {
+    const lines = [];
+    for (const word of text.split(/\s+/)) {
+      const last = lines.at(-1);
+      if (last && `${last} ${word}`.length <= max) lines[lines.length - 1] = `${last} ${word}`;
+      else lines.push(word);
+    }
+    return lines;
+  }
+
+  function svgLabel(text, x, y, anchor, { extra, max = 18 } = {}) {
+    const lines = wrapWords(text, max);
+    const lineHeight = 17;
+    const all = extra ? [...lines, extra] : lines;
+    return s(
+      'text',
+      { class: 'svg-label', x, y: y - ((all.length - 1) * lineHeight) / 2, 'text-anchor': anchor, 'dominant-baseline': 'middle' },
+      all.map((line, i) =>
+        s('tspan', { x, dy: i ? lineHeight : 0, class: extra && i === all.length - 1 ? 'svg-label__extra' : null, text: line }),
+      ),
+    );
+  }
+
+  const arrowDefs = () =>
+    s(
+      'defs',
+      {},
+      s(
+        'marker',
+        { id: 'arrow', viewBox: '0 0 10 10', refX: 8.5, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' },
+        s('path', { class: 'arrowhead', d: 'M0 0L10 5L0 10Z' }),
+      ),
+    );
+
+  function layerPicker() {
+    return h(
+      'fieldset',
+      { class: 'segmented' },
+      h('legend', { text: t('layers.pickerLabel') }),
+      h(
+        'div',
+        { class: 'segmented__options' },
+        LAYER_CHOICES.map((layer) =>
+        h(
+          'label',
+          { class: 'segmented__option' },
+          h('input', {
+            type: 'radio',
+            name: `layer-${state.view}`,
+            value: layer,
+            checked: state.layer === layer,
+            'data-key': `layer:${layer}`,
+            onchange: () => setLayer(layer),
+          }),
+          layer !== 'all' && shapeIcon(layer),
+          h('span', { text: layer === 'all' ? t('layers.all') : t(`layers.${layer}`) }),
+        ),
+        ),
+      ),
+    );
+  }
+
+  // ---- role orbit --------------------------------------------------------
+
+  // Level 1 is the baseline drawing: the centre role's own relationships, one
+  // spoke and end per relationship. Each further level adds the roles one
+  // connection further out, each hanging from one role of the level before by
+  // one of their existing relationships; the other relationships between them
+  // stay in the detail panel and the matrix. Levels show modeled distance, not
+  // a procurement sequence.
+
+  // Kept between renders so a re-centred orbit slides its ends from where
+  // they were, and an unchanged orbit keeps its frame's scroll position.
+  let lastOrbit = null;
+
+  // Measured with the page's own font so placement matches the drawn text.
+  let measurer;
+  function textWidth(text, style) {
+    measurer ??= document.createElement('canvas').getContext('2d');
+    measurer.font = `${style} ${getComputedStyle(document.body).fontFamily}`;
+    return measurer.measureText(text).width;
+  }
+
+  // An end's name: its lines as drawn, and the box they fill.
+  function nameBox(id) {
+    const lines = wrapWords(shortName(id), 20);
+    const proposed = isProposedRole(id);
+    const width = Math.max(...lines.map((line) => textWidth(line, '16px')), proposed ? textWidth(t('basis.proposed'), 'italic 14px') : 0);
+    return { width, height: (lines.length + (proposed ? 1 : 0)) * 17 };
+  }
+
+  // Level 1 places relationships on two arcs around the focused role.
+  // Position encodes only direction and relationship type.
+  const WIDE = { width: 900, height: 620, cx: 450, cy: 310, radius: 215, core: 66, spread: 68 };
+  // Each further level is a column on its side, beyond the names of the level before.
+  const COLUMN = { first: 460, step: 232 };
+  // The view shrinks to fit more levels, but never below this scale, which keeps names at 12px.
+  const MIN_SCALE = 0.75;
+
+  const layerGaps = (edges) => {
+    let slot = 0;
+    const slots = edges.map((edge, i) => {
+      if (i && edge.layer !== edges[i - 1].layer) slot += 0.7;
+      return slot++;
+    });
+    return { slots, total: slot };
+  };
+
+  function wideLayout(inbound, outbound) {
+    const { width, height, cx, cy, radius, spread, core } = WIDE;
+    const side = (edges, direction) => {
+      const { slots, total } = layerGaps(edges);
+      return {
+        empty: edges.length ? null : { x: cx + direction * radius, y: cy, anchor: 'middle' },
+        placed: edges.map((edge, i) => {
+          const angle = ((-spread + (2 * spread * (slots[i] + 0.5)) / total) * Math.PI) / 180;
+          const x = cx + direction * radius * Math.cos(angle);
+          const y = cy + radius * Math.sin(angle);
+          return { edge, x, y, labelX: x + direction * 26, anchor: direction > 0 ? 'start' : 'end', d: spoke({ cx, cy, r: core }, x, y, direction) };
+        }),
+      };
+    };
+    return {
+      width,
+      height,
+      core: { cx, cy, r: core, max: 13 },
+      halves: [side(inbound, -1), side(outbound, 1)],
+      extras: [s('line', { class: 'orbit__divider', x1: cx, y1: 24, x2: cx, y2: height - 24 })],
+    };
+  }
+
+  // A straight spoke between the core's rim and a satellite, pointing from
+  // the relationship's source to its receiver.
+  function spoke(core, x, y, direction) {
+    const length = Math.hypot(x - core.cx, y - core.cy);
+    const ux = (x - core.cx) / length;
+    const uy = (y - core.cy) / length;
+    const rim = [core.cx + ux * (core.r + 4), core.cy + uy * (core.r + 4)];
+    const tip = [x - ux * 17, y - uy * 17];
+    const [a, b] = direction > 0 ? [rim, tip] : [tip, rim];
+    return `M${a[0]} ${a[1]}L${b[0]} ${b[1]}`;
+  }
+
+  // Which roles and relationships the orbit draws. Level 1 is the centre's
+  // own relationships in the baseline halves. Each role first reached at a
+  // further level hangs from the first connected role of the level before,
+  // in drawing order, by their first relationship in the usual order. It
+  // keeps its parent's side; a level-1 parent with ends on both sides sends
+  // a child that points toward it to the left, as the halves do, and other
+  // children to the right. Drawing order is the left side top to bottom,
+  // then the right; a column stands in its parents' order on that side.
+  function orbitTree(focus, layer, shown) {
+    const own = G.edgesOf(focus, layer);
+    const halves = [own.filter((e) => e.to === focus), own.filter((e) => e.from === focus)];
+    // Each placed role's sides, with its place from the top on each.
+    const sides = new Map();
+    halves.forEach((edges, i) => {
+      edges.forEach((edge, place) => {
+        const partner = partnerOf(edge, focus);
+        if (!sides.has(partner)) sides.set(partner, new Map());
+        const side = i ? 'right' : 'left';
+        if (!sides.get(partner).has(side)) sides.get(partner).set(side, place);
+      });
+    });
+    let previous = [...sides.keys()];
+    const levels = [];
+    const reached = G.connectionLevels(focus, layer);
+    for (let k = 2; k <= shown && k < reached.length; k += 1) {
+      const branches = reached[k].map((id) => {
+        const parent = previous.find((p) => G.edgesOf(p, layer).some((e) => partnerOf(e, p) === id));
+        const edge = G.edgesOf(parent, layer).find((e) => partnerOf(e, parent) === id);
+        const parentSides = sides.get(parent);
+        const side = parentSides.size === 1 ? [...parentSides.keys()][0] : edge.to === parent ? 'left' : 'right';
+        return { id, parent, edge, side, level: k };
+      });
+      const column = (side) => {
+        const placed = branches.filter((b) => b.side === side).sort((a, b) => sides.get(a.parent).get(side) - sides.get(b.parent).get(side));
+        placed.forEach((b, place) => sides.set(b.id, new Map([[side, place]])));
+        return placed;
+      };
+      const ordered = [...column('left'), ...column('right')];
+      levels.push(ordered);
+      previous = ordered.map((b) => b.id);
+    }
+    return { halves, levels, drawn: new Set([...own, ...levels.flat().map((b) => b.edge)].map((e) => e.id)) };
+  }
+
+  const levelCount = (id = state.role) => G.connectionLevels(id, state.layer).length - 1;
+  const orbitDraws = (edgeId) => orbitTree(state.role, state.layer, state.levels).drawn.has(edgeId);
+
+  // Places each further level's column. A child starts level with its parent;
+  // children then spread just enough that names never touch, and the column
+  // keeps its parents' average height.
+  function branchLayout(tree, layout) {
+    const { cx } = layout.core;
+    const anchors = new Map();
+    const ends = layout.halves.flatMap((half) => half.placed);
+    for (const spot of ends) {
+      const partner = partnerOf(spot.edge, state.role);
+      const side = spot.x < cx ? 'left' : 'right';
+      if (!anchors.has(`${partner}:${side}`)) anchors.set(`${partner}:${side}`, spot);
+    }
+    const reach = (spot, partner) => {
+      const direction = spot.x < cx ? -1 : 1;
+      return { x: spot.labelX + direction * (nameBox(partner).width + 6), y: spot.y };
+    };
+    return tree.levels.map((level, i) =>
+      ['left', 'right'].flatMap((side) => {
+        const direction = side === 'left' ? -1 : 1;
+        const x = cx + direction * (COLUMN.first + i * COLUMN.step);
+        const column = level.filter((b) => b.side === side).map((b) => {
+          const parentSpot = anchors.get(`${b.parent}:${side}`);
+          return { ...b, from: reach(parentSpot, b.parent), box: nameBox(b.id) };
+        });
+        // Lines from one parent leave its name a few pixels apart, so their arrowheads never stack.
+        for (const b of column) {
+          const siblings = column.filter((other) => other.parent === b.parent);
+          b.start = { x: b.from.x, y: b.from.y + (siblings.indexOf(b) - (siblings.length - 1) / 2) * 6 };
+        }
+        let y = -Infinity;
+        for (const b of column) {
+          const previous = column[column.indexOf(b) - 1];
+          const gap = previous ? Math.max(44, (previous.box.height + b.box.height) / 2 + 12) : 0;
+          y = Math.max(b.from.y, y + gap);
+          b.y = y;
+        }
+        const shift = column.reduce((sum, b) => sum + b.from.y - b.y, 0) / (column.length || 1);
+        return column.map((b) => {
+          const spot = { edge: b.edge, partner: b.id, level: b.level, x, y: b.y + shift, labelX: x + direction * 26, anchor: direction > 0 ? 'start' : 'end' };
+          anchors.set(`${b.id}:${side}`, spot);
+          // A gentle curve from the parent's name to the child's mark, drawn
+          // from the relationship's source to its receiver.
+          const near = { x: x - direction * 17, y: spot.y };
+          const [a, z] = b.edge.from === b.parent ? [b.start, near] : [near, b.start];
+          const mid = (a.x + z.x) / 2;
+          return { ...spot, d: `M${a.x} ${a.y}C${mid} ${a.y} ${mid} ${z.y} ${z.x} ${z.y}` };
+        });
+      }),
+    );
+  }
+
+  // Agency contact routes always run from a role to the agency, so with only
+  // that type shown, a role's inbound half and the agency's outbound half
+  // cannot hold one.
+  const impossible = (id, direction) =>
+    state.layer === 'communication' && (direction === 'In' ? id !== 'agency' : id === 'agency');
+
+  function orbitHalf({ empty, placed }, name, absenceKey, core) {
+    return s(
+      'g',
+      { role: 'group', 'aria-label': name },
+      empty && s('text', { class: 'orbit__empty', x: empty.x, y: empty.y, 'text-anchor': empty.anchor, 'dominant-baseline': 'middle', text: t(absenceKey) }),
+      placed.map((spot) => satellite({ ...spot, partner: partnerOf(spot.edge, state.role), level: 1 }, core)),
+    );
+  }
+
+  // One relationship as in the baseline: a line and an end mark with the
+  // partner's name. The line opens the relationship's evidence; the end mark
+  // and name re-centre the orbit on the partner, who repeats once per
+  // level-1 relationship. Conditions and provenance stay in names and the detail panel.
+  function satellite({ edge, partner, level, x, y, labelX, anchor, d }, core) {
+    const basis = G.shownBasis(edge);
+    const { width, height } = nameBox(partner);
+    const left = anchor === 'end' ? labelX - width : labelX;
+    const selected = isSelected('edge', edge.id);
+    // A target midway along the line gives the thin line a comfortable size.
+    const n = d.match(/-?[\d.]+(?:e-?\d+)?/g).map(Number);
+    const mid = n.length === 4 ? { x: (n[0] + n[2]) / 2, y: (n[1] + n[3]) / 2 } : { x: (n[0] + 3 * n[2] + 3 * n[4] + n[6]) / 8, y: (n[1] + 3 * n[3] + 3 * n[5] + n[7]) / 8 };
+    return s(
+      'g',
+      { class: selected ? 'sat is-selected' : 'sat', 'data-edge': edge.id, 'data-layer': edge.layer, 'data-level': level },
+      s(
+        'g',
+        {
+          class: 'rel rel--spoke',
+          role: 'button',
+          tabindex: '0',
+          'aria-current': selected ? 'true' : null,
+          'data-key': `edge:${edge.id}`,
+          'data-edge': edge.id,
+          'data-basis': basis,
+          onclick: (event) => select({ kind: 'edge', id: edge.id }, event),
+          onkeydown: activateOnKey,
+        },
+        // The title is both the accessible name and the hover tooltip.
+        s('title', { text: edgeName(edge) }),
+        s('path', { class: 'line__hit', d }),
+        s('circle', { class: 'rel__hit', cx: mid.x, cy: mid.y, r: 10 }),
+        s('path', { class: 'rel__focus', d }),
+        s('path', { class: `link link--${basis}`, d, 'marker-end': 'url(#arrow)' }),
+      ),
+      s(
+        'g',
+        {
+          class: 'node node--end',
+          role: 'button',
+          tabindex: '0',
+          'data-key': `end:${edge.id}`,
+          'data-node': partner,
+          'data-x': (x - core.cx).toFixed(1),
+          'data-y': (y - core.cy).toFixed(1),
+          'data-proposed': isProposedRole(partner) ? 'true' : null,
+          onclick: () => centreOrbit(partner),
+          onkeydown: activateOnKey,
+        },
+        s('title', { text: t('orbit.centerOn', { role: roleName(partner) }) }),
+        s('circle', { class: 'node__hit', cx: x, cy: y, r: 22 }),
+        // Label text ignores the pointer; this box makes the whole name part of the end.
+        s('rect', { class: 'node__hit', x: left - 2, y: y - height / 2 - 2, width: width + 4, height: height + 4 }),
+        s('circle', { class: 'sat__ring', cx: x, cy: y, r: 16 }),
+        s('circle', { class: 'node__focus', cx: x, cy: y, r: 21 }),
+        s('g', { class: `shape shape--${basis}` }, shapePath(edge.layer, x, y, 9)),
+        svgLabel(shortName(partner), labelX, y, anchor, { extra: isProposedRole(partner) && t('basis.proposed'), max: 20 }),
+      ),
+    );
+  }
+
+  function orbitView() {
+    const focus = state.role;
+    const tree = orbitTree(focus, state.layer, state.levels);
+    const layout = wideLayout(...tree.halves);
+    const branches = branchLayout(tree, layout);
+    const names = [t('orbit.inbound'), t('orbit.outbound')];
+    const previous = lastOrbit;
+    const key = `${focus}|${state.levels}|${state.layer}`;
+    const frameBefore = document.querySelector('.orbit__frame');
+    const scrollBefore = frameBefore && [frameBefore.scrollLeft, frameBefore.scrollTop];
+    const placedBefore = new Map([...document.querySelectorAll('svg.orbit .node[data-node]')].map((el) => [el.dataset.node, { x: Number(el.dataset.x), y: Number(el.dataset.y) }]));
+    lastOrbit = { focus, key };
+    afterRender.push(() => {
+      anchorOrbit(previous?.key === key ? scrollBefore : null);
+      if (previous && previous.focus !== focus && !reducedMotion()) slideNodes(placedBefore);
+    });
+    const ownCount = tree.halves.flat().length;
+    return [
+      layerPicker(),
+      levelControl(),
+      h('p', { class: 'note', text: t('orbit.levelsNote') }),
+      // As in the baseline, the two halves are named above the drawing while
+      // only the centre's own relationships show; the row keeps its height
+      // when hidden so the frame never moves.
+      h(
+        'div',
+        { class: ownCount && state.levels === 1 ? 'orbit__halves' : 'orbit__halves is-hidden', 'aria-hidden': 'true' },
+        h('p', { text: names[0] }),
+        h('p', { text: names[1] }),
+      ),
+      h(
+        'div',
+        { class: 'orbit__frame' },
+        s(
+          'svg',
+          { class: 'orbit', role: 'group', 'aria-label': t('orbit.chart', { role: fullName(focus) }) },
+          arrowDefs(),
+          // The drawing, moved so the centre role sits at (0, 0).
+          s(
+            'g',
+            { transform: `translate(${-layout.core.cx} ${-layout.core.cy})` },
+            layout.extras,
+            orbitHalf(layout.halves[0], names[0], impossible(focus, 'In') ? 'absence.notApplicable' : 'absence.notRecorded', layout.core),
+            orbitCore(focus, layout.core),
+            orbitHalf(layout.halves[1], names[1], impossible(focus, 'Out') ? 'absence.notApplicable' : 'absence.notRecorded', layout.core),
+            branches.map((level, i) =>
+              s('g', { role: 'group', 'aria-label': t('orbit.levelGroup', { n: i + 2 }) }, level.map((spot) => satellite(spot, layout.core))),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  // Zooming out shows one more connection level, zooming in one fewer.
+  function levelControl() {
+    const total = levelCount();
+    const shown = Math.min(state.levels, total);
+    // aria-disabled keeps a limit button focusable, so focus stays put at the limit.
+    const step = (n) => () => {
+      if (n < 1 || n > total) return;
+      state.levels = n;
+      // Fewer levels can hide the chosen relationship; the choice returns to the centre.
+      if (state.selection?.kind === 'edge' && !orbitDraws(state.selection.id)) state.selection = { kind: 'role', id: state.role };
+      render();
+      say(t('orbit.levelsShown', { shown: n, total }));
+    };
+    return h(
+      'div',
+      { class: 'zoom', role: 'group', 'aria-labelledby': 'zoom-label' },
+      h('span', { id: 'zoom-label', class: 'zoom__label', text: t('orbit.zoomLabel') }),
+      h('button', { class: 'zoom__button', 'data-key': 'zoom:in', 'aria-disabled': shown <= 1 ? 'true' : null, onclick: step(shown - 1), text: t('orbit.zoomIn') }),
+      h('button', { class: 'zoom__button', 'data-key': 'zoom:out', 'aria-disabled': shown >= total ? 'true' : null, onclick: step(shown + 1), text: t('orbit.zoomOut') }),
+      h('span', { class: 'zoom__count', text: t('orbit.levelsShown', { shown, total }) }),
+    );
+  }
+
+  // The centre role keeps one place in the frame at every role, type and
+  // level: the middle of the frame, whose size never depends on the drawing.
+  // The view shrinks, never below MIN_SCALE, to fit the drawing's farthest
+  // reach from the centre on either side, so a lopsided drawing never moves
+  // the centre. The drawing's bounds are the browser's own box around
+  // everything drawn, widened so the centre sits at that place; what does not
+  // fit scrolls inside the frame. `keep` restores a reader's own scroll.
+  function anchorOrbit(keep) {
+    const svg = document.querySelector('svg.orbit');
+    if (!svg) return;
+    const frame = svg.parentElement;
+    const { clientWidth: fw, clientHeight: fh } = frame;
+    const box = svg.getBBox();
+    const pad = 12;
+    const reachX = Math.max(-box.x, box.x + box.width) + pad;
+    const reachY = Math.max(-box.y, box.y + box.height) + pad;
+    const scale = Math.min(1, Math.max(MIN_SCALE, Math.min(fw / 2 / reachX, fh / 2 / reachY)));
+    const anchorX = fw / 2;
+    const anchorY = fh / 2;
+    const left = Math.min(box.x - pad, -anchorX / scale);
+    const top = Math.min(box.y - pad, -anchorY / scale);
+    const right = Math.max(box.x + box.width + pad, (fw - anchorX) / scale);
+    const bottom = Math.max(box.y + box.height + pad, (fh - anchorY) / scale);
+    svg.setAttribute('viewBox', `${left.toFixed(1)} ${top.toFixed(1)} ${(right - left).toFixed(1)} ${(bottom - top).toFixed(1)}`);
+    svg.setAttribute('width', ((right - left) * scale).toFixed(1));
+    svg.setAttribute('height', ((bottom - top) * scale).toFixed(1));
+    [frame.scrollLeft, frame.scrollTop] = keep ?? [-left * scale - anchorX, -top * scale - anchorY];
+  }
+
+  // Nodes slide from their old places to their new ones and new lines fade
+  // in; a node not shown before fades in where it lands. The centre stays put.
+  function slideNodes(before) {
+    const svg = document.querySelector('svg.orbit');
+    const nodes = [...svg.querySelectorAll('.node[data-node]')];
+    for (const el of nodes) {
+      const from = before.get(el.dataset.node);
+      if (from) el.style.transform = `translate(${from.x - Number(el.dataset.x)}px, ${from.y - Number(el.dataset.y)}px)`;
+      else el.classList.add('is-new');
+    }
+    svg.getBoundingClientRect();
+    svg.classList.add('is-recentring');
+    for (const el of nodes) el.style.transform = '';
+  }
+
+  // The centre shows only its name; its research-marker count stays in its
+  // accessible name and the detail panel.
+  function orbitCore(id, { cx, cy, r, max }) {
+    return s(
+      'g',
+      {
+        class: 'core',
+        role: 'button',
+        tabindex: '0',
+        'aria-label': roleNameWithMarks(id),
+        'aria-current': isSelected('role', id) ? 'true' : null,
+        'data-key': `role:${id}`,
+        'data-proposed': isProposedRole(id) ? 'true' : null,
+        onclick: (event) => select({ kind: 'role', id }, event),
+        onkeydown: activateOnKey,
+      },
+      s('circle', { class: 'core__disc', cx, cy, r }),
+      svgLabel(shortName(id), cx, cy, 'middle', { extra: isProposedRole(id) && t('basis.proposed'), max }),
+    );
+  }
+
+  // ---- who-to-whom matrix ------------------------------------------------
+
+  function matrixView() {
+    const ids = G.roles.map((r) => r.id);
+    const header = (id, axis) =>
+      h(
+        'button',
+        {
+          class: 'role-button matrix__role',
+          'data-key': `role:${id}:${axis}`,
+          'aria-current': isSelected('role', id) ? 'true' : null,
+          onclick: (event) => select({ kind: 'role', id }, event),
+        },
+        h('span', { class: 'matrix__label', 'aria-hidden': 'true', text: shortName(id) }),
+        h('span', { class: 'sr-only', text: fullName(id) }),
+        isProposedRole(id) && tag('proposed', t('basis.proposed')),
+      );
+    return [
+      layerPicker(),
+      h('p', { class: 'note', text: t('matrix.directionNote') }),
+      h(
+        'div',
+        { class: 'scroller scroller--matrix' },
+        h(
+          'table',
+          { class: 'matrix' },
+          h('caption', { text: t('matrix.caption') }),
+          h(
+            'thead',
+            {},
+            h(
+              'tr',
+              {},
+              h('th', { scope: 'col', class: 'matrix__corner', text: t('matrix.corner') }),
+              ids.map((id) => h('th', { scope: 'col', 'data-col': id, class: state.role === id ? 'is-current' : null }, header(id, 'column'))),
+            ),
+          ),
+          h(
+            'tbody',
+            {},
+            ids.map((from) =>
+              h(
+                'tr',
+                { 'data-row': from, class: [from === 'agency' && 'matrix__agency', state.role === from && 'is-current'].filter(Boolean).join(' ') || null },
+                h('th', { scope: 'row' }, header(from, 'row')),
+                ids.map((to) => matrixCell(from, to)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  function matrixCell(from, to) {
+    const current = state.role === from || state.role === to ? 'is-current' : null;
+    if (from === to) return h('td', { class: 'matrix__self' }, h('span', { class: 'sr-only', text: t('absence.notApplicable') }));
+    const edges = G.edges
+      .filter((e) => e.from === from && e.to === to && (state.layer === 'all' || e.layer === state.layer))
+      .sort((a, b) => G.layers.indexOf(a.layer) - G.layers.indexOf(b.layer));
+    if (!edges.length) return h('td', { class: current }, h('span', { class: 'sr-only', text: t('absence.notRecorded') }));
+    return h(
+      'td',
+      { class: current },
+      edges.map((edge) => {
+        const basis = G.shownBasis(edge);
+        return h(
+          'button',
+          {
+            class: 'mark',
+            'data-key': `edge:${edge.id}`,
+            'data-edge': edge.id,
+            'data-layer': edge.layer,
+            'data-basis': basis,
+            title: edgeName(edge),
+            'aria-current': isSelected('edge', edge.id) ? 'true' : null,
+            onclick: (event) => select({ kind: 'edge', id: edge.id }, event),
+          },
+          shapeIcon(edge.layer, basis, isQualified(edge)),
+        );
+      }),
+    );
+  }
+
+  // ---- detail panel ------------------------------------------------------
+
+  const heading = (text) => h('h2', { id: 'detail-heading', class: 'detail__heading', tabindex: '-1', text });
+  const section = (title, ...content) => h('section', { class: 'detail__section' }, h('h3', { text: title }), content);
+
+  function relationItem(edge, id) {
+    const basis = G.shownBasis(edge);
+    return h(
+      'li',
+      {},
+      h(
+        'button',
+        {
+          class: 'relation',
+          'data-key': `detail-edge:${edge.id}`,
+          'data-edge': edge.id,
+          'aria-current': isSelected('edge', edge.id) ? 'true' : null,
+          'aria-label': edgeName(edge),
+          onclick: (event) => select({ kind: 'edge', id: edge.id }, event),
+        },
+        shapeIcon(edge.layer, basis),
+        h('span', { class: 'relation__name', text: fullName(partnerOf(edge, id)) }),
+        tag(basis, t(`basis.${basis}`)),
+        edge.signature && tag('signature', t('basis.signature')),
+        qualifierTags(edge),
+      ),
+    );
+  }
+
+  function blackHoleSection(id) {
+    const marked = G.blackHoleSteps(id);
+    if (!marked.length) return null;
+    return section(
+      t('blackHole.heading'),
+      marked.map((step, i) =>
+        h('div', { class: 'step' }, h('p', { class: 'step__label', text: t('blackHole.mark', { role: fullName(id), n: i + 1, count: marked.length }) }), passage(step.evidence)),
+      ),
+      h('p', { class: 'note', text: t('blackHole.placement') }),
+      h('h4', { text: t('blackHole.legendHeading') }),
+      passage(G.blackHoles.legend),
+    );
+  }
+
+  function gapSection(id) {
+    const gap = G.gapOf(id);
+    if (!gap) return null;
+    return section(
+      t('gap.heading'),
+      h('p', {}, tag(`gap-${gap.kind}`, t(`gap.${gap.kind}`))),
+      h('p', { text: t(`gap.${gap.kind}Basis`) }),
+      gap.evidence.map((ev) => passage(ev)),
+    );
+  }
+
+  function roleDetail(id) {
+    const role = G.role(id);
+    const layer = state.layer;
+    return [
+      heading(role.name),
+      isProposedRole(id) && [h('p', {}, tag('proposed', t('basis.proposed'))), h('p', { text: t('basisNote.proposed') })],
+      role.roles &&
+        section(
+          t('detail.roleTitles'),
+          h(
+            'ul',
+            { class: 'titles' },
+            role.roles.map((title) =>
+              h('li', {}, h('span', { text: title }), G.titleIsMapped(id, title) && [' ', tag('qualifier-roleMapping', t('qualifier.roleMapping'))]),
+            ),
+          ),
+        ),
+      section(
+        t('detail.relationships'),
+        G.relationsFor(id, layer).map((relation) => {
+          const edges = G.edgesIn(id, relation);
+          return h(
+            'div',
+            { class: 'relation-group', 'data-relation': relation },
+            h('h4', { text: t(`relations.${relation}`) }),
+            edges.length ? h('ul', { class: 'relation-list' }, edges.map((edge) => relationItem(edge, id))) : h('p', {}, absence(undefined, { visible: true })),
+          );
+        }),
+      ),
+      blackHoleSection(id),
+      gapSection(id),
+    ];
+  }
+
+  function edgeDetail(id) {
+    const edge = G.edge(id);
+    const basis = G.shownBasis(edge);
+    const centreOn = state.view === 'orbit' ? [edge.from, edge.to].filter((end) => end !== state.role) : [];
+    return [
+      heading(edgeLabel(edge)),
+      h(
+        'p',
+        { class: 'tags' },
+        shapeIcon(edge.layer, basis),
+        tag(basis, t(`basis.${basis}`)),
+        edge.signature && tag('signature', t('basis.signature')),
+        qualifierTags(edge),
+        edge.origin && tag(`origin-${edge.origin}`, t(`origin.${edge.origin}`)),
+      ),
+      h('p', { text: t(`basisNote.${G.basisOf(edge)}`) }),
+      edge.origin && h('p', { class: 'qualifier-note', 'data-origin': edge.origin, text: t(`originNote.${edge.origin}`) }),
+      centreOn.map((end) =>
+        h('p', {}, h('button', { class: 'text-button', 'data-key': `centre:${end}`, onclick: () => centreOrbit(end), text: t('orbit.centerOn', { role: fullName(end) }) })),
+      ),
+      section(
+        t('evidence.heading'),
+        edge.evidence.map((ev) => passage(ev, { reconstructed: edge.inferred?.includes(ev), tags: G.passageTags(edge, ev) })),
+        G.connectorsOf(edge).map(connector),
+      ),
+      edge.caveats && section(t('evidence.caveatsHeading'), edge.caveats.map((ev) => passage(ev, { tags: G.passageTags(edge, ev) }))),
+      edge.statements && section(t('evidence.statementsHeading'), edge.statements.map(statement)),
+    ];
+  }
+
+  function renderDetail() {
+    const selection = state.selection;
+    if (!selection) return h('p', { id: 'detail-heading', class: 'empty', text: t('detail.empty') });
+    if (selection.kind === 'role') return roleDetail(selection.id);
+    return edgeDetail(selection.id);
+  }
+
+  const selectionName = (selection) => (selection.kind === 'role' ? roleName(selection.id) : edgeName(G.edge(selection.id)));
+
+  // ---- state changes -----------------------------------------------------
+
+  function say(text) {
+    dom.status.textContent = '';
+    setTimeout(() => {
+      dom.status.textContent = text;
+    }, 30);
+  }
+
+  function select(selection, event) {
+    const origin = event?.currentTarget;
+    const fromChart = origin instanceof Element && dom.panels[state.view].el.contains(origin);
+    const originKey = origin?.dataset?.key;
+    state.selection = selection;
+    if (selection.kind === 'role') state.role = selection.id;
+    render();
+    say(t('status.selected', { item: selectionName(selection) }));
+    if (fromChart) revealDetail(originKey, event.detail === 0);
+  }
+
+  // When a choice in a chart updates a panel that is out of view, bring the
+  // panel into view with a button back to the chosen mark. Keyboard users
+  // move to the panel's heading; pointer users keep their focus.
+  function revealDetail(originKey, byKeyboard) {
+    const heading = dom.detail.querySelector('#detail-heading');
+    const top = heading.getBoundingClientRect().top;
+    if (top >= 0 && top < innerHeight - 48) return;
+    const back = h('button', {
+      class: 'text-button detail__return',
+      'data-key': 'detail-return',
+      onclick: () => {
+        const mark = document.querySelector(`[data-key="${CSS.escape(originKey)}"]`);
+        mark?.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
+        mark?.focus({ preventScroll: true });
+        back.remove();
+      },
+      text: t('detail.return'),
+    });
+    dom.detail.prepend(back);
+    dom.detail.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' });
+    if (byKeyboard) heading.focus({ preventScroll: true });
+  }
+
+  // Focusing the orbit on a partner selects that role and moves keyboard
+  // focus to the orbit's centre, which also brings it into view on narrow screens.
+  function centreOrbit(id) {
+    state.selection = { kind: 'role', id };
+    state.role = id;
+    render();
+    say(t('status.selected', { item: roleName(id) }));
+    document.querySelector('.core')?.focus();
+  }
+
+  function setLayer(layer) {
+    state.layer = layer;
+    // A further level's relationship can leave the drawing under another type; the choice returns to the centre.
+    const edge = state.selection?.kind === 'edge' && G.edge(state.selection.id);
+    if (edge && ![edge.from, edge.to].includes(state.role) && !orbitTree(state.role, layer, Math.min(state.levels, Math.max(1, levelCount()))).drawn.has(edge.id)) {
+      state.selection = { kind: 'role', id: state.role };
+    }
+    render();
+  }
+
+  function setView(view) {
+    state.view = view;
+    render();
+  }
+
+  function onTabKey(event) {
+    const i = VIEWS.indexOf(state.view);
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: VIEWS.length - 1 }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    setView(VIEWS[(next + VIEWS.length) % VIEWS.length]);
+    dom.tabs[state.view].focus();
+  }
+
+  // ---- page --------------------------------------------------------------
+
+  const afterRender = [];
+  const RENDERERS = { orbit: orbitView, matrix: matrixView };
+
+  function lineSample(basis) {
+    return s(
+      'svg',
+      { class: 'line-sample', 'data-layer': 'neutral', viewBox: '0 0 44 20', width: 44, height: 20, 'aria-hidden': 'true', focusable: 'false' },
+      s('line', { class: `link link--${basis}`, x1: 2, y1: 10, x2: 26, y2: 10 }),
+      s('g', { class: `shape shape--${basis}` }, shapePath('information', 35, 10, 6)),
+    );
+  }
+
+  // Types and sources stay in view; the fuller definitions stay one click away.
+  function legend() {
+    return h(
+      'section',
+      { class: 'legend', 'aria-labelledby': 'legend-heading' },
+      h('h2', { id: 'legend-heading', text: t('legend.heading') }),
+      h(
+        'ul',
+        { class: 'legend__items' },
+        G.layers.map((layer) => h('li', { 'data-legend': layer }, shapeIcon(layer), h('span', { text: t(`layers.${layer}`) }))),
+        BASES.map((basis) => h('li', { 'data-legend': basis }, lineSample(basis), h('span', { text: t(`basis.${basis}`) }))),
+      ),
+      h(
+        'details',
+        { class: 'legend__more' },
+        h('summary', { text: t('legend.more') }),
+        h(
+          'ul',
+          { class: 'legend__items' },
+          h(
+            'li',
+            { 'data-legend': 'qualified' },
+            s(
+              'svg',
+              { class: 'shape shape--recorded', 'data-layer': 'neutral', viewBox: '0 0 20 20', width: 20, height: 20, 'aria-hidden': 'true', focusable: 'false' },
+              shapePath('information', 10, 10, 6.5),
+              qualifiedBadge(17, 3),
+            ),
+            h('span', { text: t('legend.qualified') }),
+          ),
+        ),
+        h('p', { text: t('legend.absence') }),
+        h('p', { text: t('legend.order') }),
+        h('p', { text: t('legend.records') }),
+        h('p', { text: t('blackHole.placement') }),
+        h('p', { text: t('legend.origin') }),
+      ),
+    );
+  }
+
+  function renderShell() {
+    document.title = t('page.title');
+    const tabs = {};
+    const panels = {};
+    for (const view of VIEWS) {
+      tabs[view] = h(
+        'button',
+        { role: 'tab', id: `tab-${view}`, class: 'tab', 'aria-controls': `panel-${view}`, onclick: () => setView(view), onkeydown: onTabKey },
+        t(`views.${view}.name`),
+      );
+      const title = h('h2', { class: 'panel__heading', tabindex: '-1', text: t(`views.${view}.name`) });
+      const body = h('div', { class: 'panel__body' });
+      panels[view] = {
+        title,
+        body,
+        el: h(
+          'section',
+          { role: 'tabpanel', id: `panel-${view}`, class: 'panel', 'aria-labelledby': `tab-${view}`, hidden: true },
+          title,
+          h('p', { class: 'purpose', text: t(`views.${view}.purpose`) }),
+          body,
+        ),
+      };
+    }
+    const picker = h(
+      'select',
+      { id: 'role-picker', onchange: (event) => select({ kind: 'role', id: event.target.value }) },
+      G.roles.map((role) => h('option', { value: role.id, text: roleName(role.id) })),
+    );
+    const detail = h('aside', { class: 'detail', 'aria-labelledby': 'detail-heading' });
+    const status = h('p', { class: 'sr-only', role: 'status', 'aria-live': 'polite' });
+    document.getElementById('app').replaceChildren(
+      h(
+        'header',
+        { class: 'masthead' },
+        // The two prototype pages as equal tabs; navigation.css styles them.
+        h(
+          'nav',
+          { class: 'workspace-nav', 'aria-label': t('page.navLabel') },
+          h('a', { href: 'index.html', 'aria-current': 'page', text: t('page.exploreLink') }),
+          h('a', { href: 'email/notification-mockup.html', text: t('page.emailLink') }),
+        ),
+        h('h1', { text: t('page.heading') }),
+        h('p', { class: 'lede', text: t('page.instructions') }),
+      ),
+      h(
+        'main',
+        { class: 'layout' },
+        h('div', { class: 'controls' }, h('label', { for: 'role-picker', text: t('roles.pickerLabel') }), picker),
+        h('div', { role: 'tablist', class: 'tabs', 'aria-label': t('views.label') }, Object.values(tabs)),
+        h('div', { class: 'workspace', 'data-view': state.view }, h('div', { class: 'workspace__main' }, Object.values(panels).map((p) => p.el), legend()), detail),
+      ),
+      status,
+    );
+    return { tabs, panels, picker, detail, status };
+  }
+
+  // The level count never exceeds what the centre has under the type shown.
+  // A chosen relationship stays where the orbit draws it: an end of it becomes
+  // the centre unless the shown levels already draw it. A type filter that
+  // does not draw the relationship returns the selection to the role.
+  function normalizeSelection() {
+    const clampLevels = () => (state.levels = Math.max(1, Math.min(state.levels, levelCount())));
+    clampLevels();
+    const edge = state.selection?.kind === 'edge' && G.edge(state.selection.id);
+    if (!edge) return;
+    if (state.layer !== 'all' && edge.layer !== state.layer) {
+      state.selection = { kind: 'role', id: state.role };
+      return;
+    }
+    if (![edge.from, edge.to].includes(state.role) && !orbitDraws(edge.id)) {
+      state.role = edge.from;
+      clampLevels();
+    }
+  }
+
+  // Narrow tables scroll inside a frame, so their sticky header row sticks to
+  // the frame's top; styles.css moves it down by this distance once the page
+  // scrolls past that top, keeping it inside the frame.
+  function pinTableHeaders() {
+    for (const scroller of document.querySelectorAll('.scroller:has(thead)')) {
+      const past = -(scroller.getBoundingClientRect().top + scroller.clientTop);
+      const room = scroller.clientHeight - scroller.querySelector('thead').offsetHeight;
+      scroller.style.setProperty('--past-frame-top', `${Math.max(0, Math.min(past, room))}px`);
+    }
+  }
+
+  // The detail panel never scrolls on its own: ordinary page scrolling reveals
+  // every passage. It stays beside the chart only while it fits the window.
+  function fitDetail() {
+    dom.detail.classList.toggle('is-sticky', dom.detail.offsetHeight <= innerHeight - 32);
+  }
+
+  function render() {
+    normalizeSelection();
+    const active = document.activeElement;
+    const focusKey = active?.closest?.('[data-key]')?.dataset.key;
+    const focusWasInPanel = dom.panels[state.view].el.contains(active);
+    dom.picker.value = state.role;
+    dom.detail.parentElement.dataset.view = state.view;
+    for (const view of VIEWS) {
+      const current = view === state.view;
+      dom.tabs[view].setAttribute('aria-selected', String(current));
+      dom.tabs[view].tabIndex = current ? 0 : -1;
+      dom.panels[view].el.hidden = !current;
+      dom.panels[view].body.replaceChildren(...(current ? [RENDERERS[view]()].flat(Infinity).filter(Boolean) : []));
+    }
+    dom.detail.replaceChildren(...[renderDetail()].flat(Infinity).filter(Boolean));
+    for (const task of afterRender.splice(0)) task();
+    fitDetail();
+    pinTableHeaders();
+    writeHash();
+    if (active && !active.isConnected) {
+      const replacement = focusKey && document.querySelector(`[data-key="${CSS.escape(focusKey)}"]`);
+      if (replacement) replacement.focus({ preventScroll: true });
+      else if (focusWasInPanel) dom.panels[state.view].title.focus({ preventScroll: true });
+      else dom.detail.querySelector('#detail-heading')?.focus({ preventScroll: true });
+    }
+  }
+
+  readHash();
+  const dom = renderShell();
+  render();
+  window.addEventListener('resize', () => {
+    fitDetail();
+    pinTableHeaders();
+    anchorOrbit();
+  });
+  window.addEventListener('scroll', pinTableHeaders, { passive: true });
+  // Tables keep their header row and role column pinned; move focused body
+  // content clear of both, scrolling the page for what the frame cannot. Role
+  // names are the pinned column, so only cells need the sideways move.
+  function clearOfPinned(target) {
+    const cell = target.closest('.scroller tbody :is(td, th)');
+    if (!cell || document.activeElement !== target) return;
+    const scroller = cell.closest('.scroller');
+    // Scroll events arrive a frame late; measure against the current page position.
+    pinTableHeaders();
+    const header = scroller.querySelector('thead th').getBoundingClientRect().bottom;
+    const item = target.getBoundingClientRect();
+    if (cell.tagName === 'TD') {
+      const pinned = cell.parentElement.querySelector('th').getBoundingClientRect().right;
+      const box = scroller.getBoundingClientRect();
+      if (item.left < pinned) scroller.scrollLeft -= pinned - item.left + 8;
+      else if (item.right > box.right) scroller.scrollLeft += item.right - box.right + 8;
+    }
+    if (item.top < header) {
+      const needed = header - item.top + 8;
+      const before = scroller.scrollTop;
+      scroller.scrollTop -= needed;
+      window.scrollBy(0, before - scroller.scrollTop - needed);
+      pinTableHeaders();
+    }
+  }
+  // The browser scrolls a newly focused element into view after focus events
+  // run, which can undo a correction; so correct again after that scroll.
+  document.addEventListener('focusin', (event) => {
+    clearOfPinned(event.target);
+    requestAnimationFrame(() => clearOfPinned(event.target));
+  });
+  window.addEventListener('hashchange', () => {
+    readHash();
+    render();
+  });
+})();
+
+</script>
+<script>
+prototypePages.start();
+</script>
+  </body>
+</html>

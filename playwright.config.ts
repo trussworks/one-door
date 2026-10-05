@@ -22,6 +22,7 @@ export default defineConfig({
     "review-boundary.acceptance.ts",
     "focus.acceptance.ts",
     "draft-lifecycle.acceptance.ts",
+    "procurement.acceptance.ts",
   ],
   outputDir: "./playwright-results",
   forbidOnly: true,

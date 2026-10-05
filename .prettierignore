@@ -4,3 +4,5 @@
 .entire/settings.local.json
 .entire/redactors/local/
 test/fixtures/upgrade-baselines/
+# Byte-exact copy of the frozen procurement prototype export.
+src/server/procurement-prototypes.html
