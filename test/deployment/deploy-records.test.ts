@@ -280,6 +280,58 @@ it("requires every application alarm to notify the expected topic", () => {
   expect(() => requireNotificationActions(p)).toThrow("alarms are missing");
 });
 
+it("accepts only the Truss visitor-activity notice without notification actions", () => {
+  const names =
+    "readiness probe-missing ecs-api web-count worker-count queue-age worker-heartbeat worker-failures worker-poll-errors worker-queue-metrics database-storage database-memory database-connections deployment-failed".split(
+      " ",
+    );
+  const truss = {
+    ...p,
+    account_id: "004351505091",
+    name: "one-door-truss",
+    environment: "truss",
+  } as Platform;
+  const topicOf = (platform: Platform) =>
+    `arn:aws:sns:${platform.region}:${platform.account_id}:${platform.name}-alerts`;
+  // The Truss platform defines this activity notice with no actions; its
+  // messages go through a dedicated topic instead of the outage alerts.
+  const notice = (platform: Platform, suffix = "visitor-activity") => ({
+    AlarmName: platform.name + "-" + suffix,
+    ActionsEnabled: true,
+    AlarmActions: [] as string[],
+    OKActions: [] as string[],
+  });
+  const check = (platform: Platform, ...extra: ReturnType<typeof notice>[]) => {
+    const required = names.map((name) => ({
+      AlarmName: platform.name + "-" + name,
+      ActionsEnabled: true,
+      AlarmActions: [topicOf(platform)],
+      OKActions: [topicOf(platform)],
+    }));
+    mocked.aws.mockReturnValue({ MetricAlarms: [...required, ...extra] });
+    return () => requireNotificationActions(platform);
+  };
+  const visitor = notice(truss);
+  const topic = topicOf(truss);
+  expect(check(truss, visitor)).not.toThrow();
+  expect(check(truss, { ...visitor, ActionsEnabled: false })).toThrow(
+    "disabled",
+  );
+  expect(check(truss, { ...visitor, AlarmActions: [topic] })).toThrow(
+    visitor.AlarmName,
+  );
+  expect(check(truss, { ...visitor, OKActions: [topic] })).toThrow(
+    visitor.AlarmName,
+  );
+  // The exemption is for that exact alarm, not its prefix or any other alarm.
+  for (const suffix of ["visitor-activity-copy", "unplanned"])
+    expect(check(truss, visitor, notice(truss, suffix))).toThrow(
+      "destination is unconfirmed",
+    );
+  // Only Truss creates the notice, so another environment gets no exemption.
+  expect(check(p, notice(p))).toThrow("destination is unconfirmed");
+});
+
 it("refuses stale serving pins or an overlapping deployment before preparation", () => {
   const expected = { web: "web:9", worker: "worker:9" };
   const services = (["web", "worker"] as const).map((name) => ({

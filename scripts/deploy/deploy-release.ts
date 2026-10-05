@@ -727,6 +727,28 @@ export async function healthyAlarm(
   );
 }
 
+function acceptTrussVisitorWithoutOutageActions(
+  p: Platform,
+  alarm: { AlarmName: string; AlarmActions: string[]; OKActions: string[] },
+): boolean {
+  if (
+    p.environment !== "truss" ||
+    alarm.AlarmName !== p.name + "-visitor-activity"
+  )
+    return false;
+  assert.deepEqual(
+    alarm.AlarmActions,
+    [],
+    "Visitor activity must not use outage notifications: " + alarm.AlarmName,
+  );
+  assert.deepEqual(
+    alarm.OKActions,
+    [],
+    "Visitor activity must not use recovery notifications: " + alarm.AlarmName,
+  );
+  return true;
+}
+
 export function requireNotificationActions(p: Platform): void {
   const expected = [
     "readiness",
@@ -784,6 +806,7 @@ export function requireNotificationActions(p: Platform): void {
       true,
       "Notification actions are disabled: " + alarm.AlarmName,
     );
+    if (acceptTrussVisitorWithoutOutageActions(p, alarm)) continue;
     assert.deepEqual(
       alarm.AlarmActions,
       [topic],
