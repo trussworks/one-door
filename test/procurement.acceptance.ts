@@ -111,18 +111,20 @@ test("the fixed login handoff preserves the criteria fragment and ignores redire
 test("the acceptance frame stays interactive under the deployed framing policy", async ({
   page,
 }, testInfo) => {
-  await page.route("**/procurement", async (route) => {
-    const response = await route.fetch({ maxRedirects: 0 });
-    await route.fulfill({
-      response,
-      headers: {
-        ...response.headers(),
-        "x-frame-options": "DENY",
-        "content-security-policy":
-          "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'",
-      },
+  if (!process.env.E2E_BASE_URL) {
+    await page.route("**/procurement", async (route) => {
+      const response = await route.fetch({ maxRedirects: 0 });
+      await route.fulfill({
+        response,
+        headers: {
+          ...response.headers(),
+          "x-frame-options": "DENY",
+          "content-security-policy":
+            "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'",
+        },
+      });
     });
-  });
+  }
   await page.goto("/procurement#criteria");
   await page.getByLabel("Demo code").fill(process.env.DEMO_ACCESS_CODE!);
   const protectedResponse = page.waitForResponse(
