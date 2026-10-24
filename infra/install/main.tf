@@ -4,9 +4,9 @@
 # runs, so leaving this definition in release Terraform would force the
 # deployment role to keep administrator PassRole authority it never needs.
 terraform {
-  required_version = "= 1.16.1"
+  required_version = "= 1.16.7"
   required_providers {
-    aws = { source = "hashicorp/aws", version = "= 6.63.0" }
+    aws = { source = "hashicorp/aws", version = "= 6.70.0" }
   }
   backend "s3" {}
 }

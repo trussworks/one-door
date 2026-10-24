@@ -1,5 +1,5 @@
 # Multi-architecture indexes keep local arm64 and released amd64 builds pinned.
-ARG NODE_IMAGE=node:26.8.2-trixie-slim@sha256:f7bb8247fdb16250dbec7fd0e24f091c6f5f0a29d256f3aef5816a7a369166b2
+ARG NODE_IMAGE=node:26.12.1-trixie-slim@sha256:36793bcbb160a6a16cede1e62b93f84e26b78a972a8a4c0b879c1c12f22761ec
 # The runtime supplies OS libraries without a shell or package manager.
 ARG RUNTIME_IMAGE=gcr.io/distroless/nodejs26-debian13@sha256:d4883f09086d2c3ccc35d406ef5c9f8c9d06691b72336bc8612cf9a7c2980523
 

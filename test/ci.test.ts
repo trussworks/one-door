@@ -162,6 +162,59 @@ it("runs release checks on Node 26 with full history and per-suite databases", (
     );
 });
 
+type WorkflowStep = { uses?: string; with?: Record<string, unknown> };
+
+function workflowSteps(name: string): WorkflowStep[] {
+  const workflow = parse(
+    readFileSync(
+      new URL(`../.github/workflows/${name}`, import.meta.url),
+      "utf8",
+    ),
+  ) as { jobs: Record<string, { steps?: WorkflowStep[] }> };
+  return Object.values(workflow.jobs).flatMap((job) => job.steps ?? []);
+}
+
+// These are the builds that carry the October 2026 Node security release and
+// the Go 1.26.10 intermediate-distrust fix; an older pin brings the flaws back.
+it("pins the Node, Terraform and AWS provider builds with the October 2026 fixes", () => {
+  for (const name of ["harness-ci.yml", "release.yml"]) {
+    const steps = workflowSteps(name);
+    const setupNode = steps.filter((step) =>
+      step.uses?.startsWith("actions/setup-node@"),
+    );
+    expect(setupNode.length).toBeGreaterThan(0);
+    // Without check-latest, a floating "26" resolves to whatever patch the
+    // runner image cached, which can predate the fixed release.
+    expect(setupNode.map((step) => step.with?.["check-latest"])).toEqual(
+      setupNode.map(() => true),
+    );
+    const setupTerraform = steps.filter((step) =>
+      step.uses?.startsWith("hashicorp/setup-terraform@"),
+    );
+    expect(setupTerraform.length).toBeGreaterThan(0);
+    expect(setupTerraform.map((step) => step.with?.terraform_version)).toEqual(
+      setupTerraform.map(() => "1.16.7"),
+    );
+  }
+  for (const stack of ["bootstrap", "platform", "release", "install"]) {
+    const main = readFileSync(
+      new URL(`../infra/${stack}/main.tf`, import.meta.url),
+      "utf8",
+    );
+    expect(main).toContain('required_version = "= 1.16.7"');
+    expect(main).toMatch(
+      /source\s*=\s*"hashicorp\/aws",?\s*version\s*=\s*"= 6\.70\.0"/,
+    );
+  }
+  const dockerfile = readFileSync(
+    new URL("../Dockerfile", import.meta.url),
+    "utf8",
+  );
+  expect(dockerfile).toMatch(
+    /^ARG NODE_IMAGE=node:26\.12\.1-trixie-slim@sha256:[a-f\d]{64}$/m,
+  );
+});
+
 it("runs browser journeys against a production app and isolated database in CI", () => {
   const browser = readWorkflow().split("  browser:")[1];
   expect(browser).toContain("-e POSTGRES_DB=one_door_e2e");

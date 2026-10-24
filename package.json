@@ -65,11 +65,11 @@
     "@uswds/uswds": "3.14.0",
     "drizzle-orm": "0.45.2",
     "focus-trap-react": "12.0.3",
-    "next": "16.3.8",
+    "next": "16.4.1",
     "postgres": "3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.2"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -89,7 +89,7 @@
     "secretlint": "^13.0.5",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "^8.70.0",
-    "vite": "8.3.0",
+    "vite": "8.3.3",
     "vitest": "^5.0.0",
     "yaml": "2.9.0"
   },

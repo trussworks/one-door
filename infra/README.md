@@ -40,7 +40,7 @@ Use the requirements below for a new installation. The [rehearsal tool record](#
 | Tool or access      | Required version or scope                                                         | Check                                                                    |
 | ------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Node.js and npm     | Node 24 for release checks; npm available                                         | `node --version` and `npm --version`                                     |
-| Terraform           | Exactly 1.16.1                                                                    | `terraform version`                                                      |
+| Terraform           | Exactly 1.16.7                                                                    | `terraform version`                                                      |
 | AWS CLI             | v2 with a working temporary credential profile                                    | `aws --version` and `aws sts get-caller-identity`                        |
 | Docker              | A running Linux-container engine with Buildx                                      | `docker version` and `docker buildx version`                             |
 | Python              | 3.10 or newer for probe tests and the examples below                              | `python3 --version`                                                      |
